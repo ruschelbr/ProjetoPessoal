@@ -3,23 +3,499 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Locações</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Sistema de Locação de Equipamentos</title>
+    <style>
+        :root {
+            --primary: #32c3bb;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #626c71;
+            --bg: #1f2121;
+            --surface: #262828;
+            --text: #f5f5f5;
+            --text-light: #a7a9a9;
+            --border: rgba(94, 82, 64, 0.2);
+            --focus-ring: rgba(50, 195, 187, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .btn-primary {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #16a34a;
+        }
+
+        .btn-secondary {
+            background: rgba(94, 82, 64, 0.12);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(94, 82, 64, 0.2);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .view {
+            display: none;
+            animation: fadeIn 0.25s;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--text);
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin-bottom: 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.25s;
+            border: 1px solid rgba(94, 82, 64, 0.12);
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .table-container {
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(94, 82, 64, 0.12);
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            color: var(--text);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(94, 82, 64, 0.12);
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: rgba(94, 82, 64, 0.12);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-available {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        .badge-occupied {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(19, 52, 59, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            color: var(--primary);
+            margin-bottom: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.25s;
+        }
+
+        .close-btn:hover {
+            color: var(--text);
+            background: rgba(94, 82, 64, 0.12);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.25s;
+            background-color: rgba(0,0,0,0.2);
+            color: var(--text);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid var(--primary);
+            border-color: var(--primary);
+            box-shadow: var(--focus-ring);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        .form-actions button {
+            flex: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px 20px;
+            color: var(--text-light);
+        }
+
+        .detail-section {
+            background: rgba(94, 82, 64, 0.12);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(94, 82, 64, 0.12);
+        }
+
+        .detail-item {
+            margin-bottom: 10px;
+        }
+
+        .detail-item strong {
+            color: var(--text-light);
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-item span {
+            display: block;
+            font-size: 14px;
+            margin-top: 4px;
+            color: var(--text);
+        }
+
+        .equipamentos-grid, .clientes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card, .client-card {
+            background: var(--surface);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.25s;
+            border: 1px solid var(--border);
+            position: relative;
+            border-left: 4px solid var(--primary);
+        }
+
+        .product-card:hover, .client-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+
+        .product-card h3, .client-card h3 {
+            margin-bottom: 12px;
+            color: var(--text);
+        }
+
+        .product-serie, .product-valor, .client-info {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .back-btn {
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .header-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .dashboard-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .equipamentos-grid, .clientes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- HEADER -->
     <header>
-        <h1>📱 Locadora de Equipamentos</h1>
+        <h1>🚀 Locação de Equipamentos</h1>
         <div class="header-buttons">
-            <button class="btn btn-primary" onclick="showView('dashboard')">📊 Dashboard</button>
-            <button class="btn btn-primary" onclick="showView('equipamentos')">⚙️ Equipamentos</button>
-            <button class="btn btn-primary" onclick="showView('clientes')">👥 Clientes</button>
+            <button class="btn btn-secondary" onclick="showView('dashboard')">📊 Dashboard</button>
+            <button class="btn btn-secondary" onclick="showView('equipamentos')">📦 Equipamentos</button>
+            <button class="btn btn-secondary" onclick="showView('clientes')">👥 Clientes</button>
         </div>
     </header>
 
     <div class="container">
         <!-- DASHBOARD -->
         <div id="dashboard" class="view active">
-            <h2>📈 Dashboard</h2>
+            <h2>📊 Dashboard Principal</h2>
+            
             <div class="dashboard-stats">
                 <div class="stat-card">
                     <h3>Total de Clientes</h3>
@@ -34,26 +510,25 @@
                     <div class="number" id="equipLivres">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Total Locando</h3>
+                    <h3>Faturamento Ativo</h3>
                     <div class="number" id="valorTotal">R$ 0,00</div>
                 </div>
             </div>
 
-            <div id="alertContainer"></div>
-
-            <h3 style="margin-top: 30px;">📋 Locações Ativas</h3>
-            <div id="locacoesAtivas" class="table-container"></div>
+            <div class="table-container">
+                <h3>📋 Locações Ativas</h3>
+                <div id="locacoesAtivas"></div>
+            </div>
         </div>
 
         <!-- EQUIPAMENTOS -->
         <div id="equipamentos" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>⚙️ Equipamentos</h2>
+                <h2>📦 Equipamentos</h2>
                 <button class="btn btn-primary" onclick="openAddProductModal()">➕ Novo Produto</button>
             </div>
-
-            <div id="equipamentosList" class="equipamentos-grid"></div>
-            <div id="produtoDetalhes" style="display: none;" class="produto-detalhes"></div>
+            <div id="equipamentosList"></div>
+            <div id="produtoDetalhes"></div>
         </div>
 
         <!-- CLIENTES -->
@@ -62,35 +537,34 @@
                 <h2>👥 Clientes</h2>
                 <button class="btn btn-primary" onclick="openAddClientModal()">➕ Novo Cliente</button>
             </div>
-
-            <div id="clientesList" class="clientes-grid"></div>
-            <div id="clienteDetalhes" style="display: none;" class="cliente-detalhes"></div>
+            <div id="clientesList"></div>
+            <div id="clienteDetalhes"></div>
         </div>
     </div>
 
-    <!-- MODAL: NOVO PRODUTO -->
+    <!-- MODAL: ADICIONAR PRODUTO -->
     <div id="modalAddProduct" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Novo Produto</h2>
-                <button class="close-btn" onclick="closeModal('modalAddProduct')">×</button>
+                <h2>Adicionar Novo Produto</h2>
+                <button class="close-btn" onclick="closeModal('modalAddProduct')">&times;</button>
             </div>
             <form id="formProduct">
                 <div class="form-group">
-                    <label>Nome do Produto *</label>
+                    <label for="nomeProduto">Nome do Produto *</label>
                     <input type="text" id="nomeProduto" required>
                 </div>
                 <div class="form-group">
-                    <label>Número de Série *</label>
+                    <label for="serieProduto">Número de Série *</label>
                     <input type="text" id="serieProduto" required>
                 </div>
                 <div class="form-group">
-                    <label>Descrição</label>
-                    <textarea id="descricaoProduto" rows="3"></textarea>
+                    <label for="valorDiarioProduto">Valor Diário (R$) *</label>
+                    <input type="number" id="valorDiarioProduto" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label>Valor Diário (R$) *</label>
-                    <input type="number" id="valorDiarioProduto" min="0" step="0.01" required>
+                    <label for="descricaoProduto">Descrição</label>
+                    <textarea id="descricaoProduto"></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">✓ Adicionar</button>
@@ -100,28 +574,28 @@
         </div>
     </div>
 
-    <!-- MODAL: NOVO CLIENTE -->
+    <!-- MODAL: ADICIONAR CLIENTE -->
     <div id="modalAddClient" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Novo Cliente</h2>
-                <button class="close-btn" onclick="closeModal('modalAddClient')">×</button>
+                <h2>Adicionar Novo Cliente</h2>
+                <button class="close-btn" onclick="closeModal('modalAddClient')">&times;</button>
             </div>
             <form id="formClient">
                 <div class="form-group">
-                    <label>Nome *</label>
+                    <label for="nomeCliente">Nome Completo *</label>
                     <input type="text" id="nomeCliente" required>
                 </div>
                 <div class="form-group">
-                    <label>Email *</label>
+                    <label for="emailCliente">Email *</label>
                     <input type="email" id="emailCliente" required>
                 </div>
                 <div class="form-group">
-                    <label>Telefone *</label>
+                    <label for="telefoneCliente">Telefone *</label>
                     <input type="tel" id="telefoneCliente" required>
                 </div>
                 <div class="form-group">
-                    <label>Endereço *</label>
+                    <label for="enderecoCliente">Endereço *</label>
                     <input type="text" id="enderecoCliente" required>
                 </div>
                 <div class="form-actions">
@@ -136,13 +610,10 @@
     <div id="modalLocarProduto" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Locar Produto</h2>
-                <button class="close-btn" onclick="closeModal('modalLocarProduto')">×</button>
+                <h2>Locar Equipamento</h2>
+                <button class="close-btn" onclick="closeModal('modalLocarProduto')">&times;</button>
             </div>
             <form id="formLocar">
-                <input type="hidden" id="produtoIdLocar">
-                <input type="hidden" id="clienteIdLocar">
-
                 <div class="detail-section">
                     <h3>📦 Produto</h3>
                     <div id="produtoLocarInfo"></div>
@@ -154,28 +625,28 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Data de Locação *</label>
+                    <label for="dataLocacao">Data de Locação *</label>
                     <input type="date" id="dataLocacao" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Data de Devolução Prevista *</label>
+                    <label for="dataDevolucao">Data de Devolução *</label>
                     <input type="date" id="dataDevolucao" required>
                 </div>
 
                 <div class="detail-section">
-                    <h3>💰 Valor</h3>
+                    <h3>💰 Cálculo</h3>
+                    <div class="detail-item">
+                        <strong>Valor/Dia</strong>
+                        <span id="valorDiaLocar" data-valor="0">R$ 0,00</span>
+                    </div>
                     <div class="detail-item">
                         <strong>Dias</strong>
                         <span id="diasLocacao">0</span>
                     </div>
                     <div class="detail-item">
-                        <strong>Valor/Dia</strong>
-                        <span id="valorDiaLocar">R$ 0,00</span>
-                    </div>
-                    <div class="detail-item" style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
-                        <strong>Total</strong>
-                        <span id="totalLocar" style="font-size: 18px; font-weight: bold; color: #2da6b2;">R$ 0,00</span>
+                        <strong>Valor Total</strong>
+                        <span id="totalLocar" style="font-weight: bold; color: var(--primary); font-size: 18px;">R$ 0,00</span>
                     </div>
                 </div>
 
@@ -184,6 +655,9 @@
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalLocarProduto')">Cancelar</button>
                 </div>
             </form>
+
+            <input type="hidden" id="produtoIdLocar">
+            <input type="hidden" id="clienteIdLocar">
         </div>
     </div>
 
@@ -191,51 +665,605 @@
     <div id="modalDevolverProduto" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Devolver Produto</h2>
-                <button class="close-btn" onclick="closeModal('modalDevolverProduto')">×</button>
+                <h2>Devolver Equipamento</h2>
+                <button class="close-btn" onclick="closeModal('modalDevolverProduto')">&times;</button>
             </div>
             <form id="formDevolver">
-                <input type="hidden" id="locacaoIdDevolver">
-
                 <div id="infoDevolver"></div>
 
                 <div class="form-group">
-                    <label>Data da Devolução *</label>
+                    <label for="dataDevolucaoReal">Data de Devolução Real *</label>
                     <input type="date" id="dataDevolucaoReal" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Condição do Equipamento</label>
-                    <select id="condicao">
-                        <option value="perfeito">Perfeito</option>
-                        <option value="danificado">Danificado</option>
+                    <label for="condicao">Condição do Equipamento *</label>
+                    <select id="condicao" required>
+                        <option value="">Selecione...</option>
+                        <option value="Perfeito">✅ Perfeito</option>
+                        <option value="Pequenos danos">⚠️ Pequenos danos</option>
+                        <option value="Danificado">🔴 Danificado</option>
                     </select>
                 </div>
 
                 <div class="detail-section">
-                    <h3>💰 Resumo Final</h3>
+                    <h3>💰 Cálculo Final</h3>
                     <div class="detail-item">
                         <strong>Valor Original</strong>
                         <span id="valorOriginalDevolver">R$ 0,00</span>
                     </div>
                     <div class="detail-item">
-                        <strong>Multa (se houver)</strong>
-                        <span id="multaDevolver">R$ 0,00</span>
+                        <strong>Multa por Atraso</strong>
+                        <span id="multaDevolver" style="color: var(--danger);">R$ 0,00</span>
                     </div>
-                    <div class="detail-item" style="border-top: 1px solid #ddd; padding-top: 10px; margin-top: 10px;">
+                    <div class="detail-item">
                         <strong>Total a Pagar</strong>
-                        <span id="totalPagarDevolver" style="font-size: 18px; font-weight: bold; color: #2da6b2;">R$ 0,00</span>
+                        <span id="totalPagarDevolver" style="font-weight: bold; color: var(--primary); font-size: 18px;">R$ 0,00</span>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">✓ Devolver</button>
+                    <button type="submit" class="btn btn-success">✓ Confirmar Devolução</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalDevolverProduto')">Cancelar</button>
                 </div>
             </form>
+
+            <input type="hidden" id="locacaoIdDevolver">
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ========== DADOS ==========
+        let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
+        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
+        let locacoes = JSON.parse(localStorage.getItem('locacoes')) || [];
+
+        // ========== FUNÇÕES PRINCIPAIS ==========
+        function showView(viewName) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewName).classList.add('active');
+            window.scrollTo(0, 0);
+
+            if (viewName === 'dashboard') updateDashboard();
+            else if (viewName === 'equipamentos') renderEquipamentos();
+            else if (viewName === 'clientes') renderClientes();
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function showNotification(msg, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = `notification ${type}`;
+            notif.textContent = msg;
+            notif.style.cssText = `
+                position: fixed; top: 20px; right: 20px; 
+                background: white; padding: 15px 20px; 
+                border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 3000; animation: slideIn 0.3s;
+                border-left: 4px solid ${type === 'success' ? '#22c55e' : '#ef4444'};
+                color: black;
+            `;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        // ========== PRODUTOS ==========
+        function openAddProductModal() {
+            document.getElementById('formProduct').reset();
+            openModal('modalAddProduct');
+        }
+
+        document.getElementById('formProduct').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const produto = {
+                id: Date.now(),
+                nome: document.getElementById('nomeProduto').value,
+                serie: document.getElementById('serieProduto').value,
+                descricao: document.getElementById('descricaoProduto').value,
+                valorDiario: parseFloat(document.getElementById('valorDiarioProduto').value),
+                disponivel: true,
+                locacaoId: null
+            };
+
+            produtos.push(produto);
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+            showNotification('✓ Produto adicionado!');
+            closeModal('modalAddProduct');
+            renderEquipamentos();
+        });
+
+        function renderEquipamentos() {
+            const container = document.getElementById('equipamentosList');
+            
+            if (produtos.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum equipamento cadastrado</div>';
+                return;
+            }
+
+            let html = '<div class="equipamentos-grid">';
+            
+            produtos.forEach(p => {
+                const status = p.disponivel ? 'badge-available' : 'badge-occupied';
+                const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
+                
+                html += `
+                    <div class="product-card" onclick="verDetalheProduto(${p.id})">
+                        <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
+                        <h3>${p.nome}</h3>
+                        <div class="product-serie">📌 ${p.serie}</div>
+                        <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
+                        ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('produtoDetalhes').innerHTML = '';
+        }
+
+        function verDetalheProduto(produtoId) {
+            const produto = produtos.find(p => p.id === produtoId);
+            if (!produto) return;
+
+            let locacaoInfo = '';
+            if (!produto.disponivel && produto.locacaoId) {
+                const locacao = locacoes.find(l => l.id === produto.locacaoId);
+                const cliente = clientes.find(c => c.id === locacao.clienteId);
+                locacaoInfo = `
+                    <div style="background: rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(239, 68, 68, 0.25);">
+                        <strong>Atualmente com:</strong> ${cliente ? cliente.nome : 'Cliente'}<br>
+                        <strong>Até:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
+                    </div>
+                `;
+            }
+
+            const html = `
+                <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">← Voltar</button>
+                <div class="produto-detalhes">
+                    <h2>${produto.nome}</h2>
+                    <div class="detail-section">
+                        <h3>📦 Informações</h3>
+                        <div class="detail-item">
+                            <strong>Série</strong>
+                            <span>${produto.serie}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Valor Diário</strong>
+                            <span>R$ ${produto.valorDiario.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Status</strong>
+                            <span>
+                                <span class="badge ${produto.disponivel ? 'badge-available' : 'badge-occupied'}">
+                                    ${produto.disponivel ? '✅ Disponível' : '🔴 Locado'}
+                                </span>
+                            </span>
+                        </div>
+                        ${produto.descricao ? `
+                            <div class="detail-item">
+                                <strong>Descrição</strong>
+                                <span>${produto.descricao}</span>
+                            </div>
+                        ` : ''}
+                        ${locacaoInfo}
+                    </div>
+                    ${produto.disponivel ? `
+                        <div class="actions">
+                            <button class="btn btn-danger" onclick="deletarProduto(${produto.id})">🗑️ Deletar</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            document.getElementById('produtoDetalhes').innerHTML = html;
+            document.getElementById('equipamentosList').innerHTML = '';
+        }
+
+        function voltarEquipamentos() {
+            document.getElementById('produtoDetalhes').innerHTML = '';
+            renderEquipamentos();
+        }
+
+        function deletarProduto(produtoId) {
+            if (!confirm('Tem certeza?')) return;
+            produtos = produtos.filter(p => p.id !== produtoId);
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+            showNotification('✓ Produto deletado!');
+            voltarEquipamentos();
+        }
+
+        // ========== CLIENTES ==========
+        function openAddClientModal() {
+            document.getElementById('formClient').reset();
+            openModal('modalAddClient');
+        }
+
+        document.getElementById('formClient').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const cliente = {
+                id: Date.now(),
+                nome: document.getElementById('nomeCliente').value,
+                email: document.getElementById('emailCliente').value,
+                telefone: document.getElementById('telefoneCliente').value,
+                endereco: document.getElementById('enderecoCliente').value,
+                dataCriacao: new Date().toLocaleDateString('pt-BR')
+            };
+
+            clientes.push(cliente);
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+            showNotification('✓ Cliente adicionado!');
+            closeModal('modalAddClient');
+            renderClientes();
+        });
+
+        function renderClientes() {
+            const container = document.getElementById('clientesList');
+            
+            if (clientes.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum cliente cadastrado</div>';
+                return;
+            }
+
+            let html = '<div class="clientes-grid">';
+            
+            clientes.forEach(c => {
+                const equipLocado = locacoes.filter(l => l.clienteId === c.id && l.ativo);
+                const temLocacao = equipLocado.length > 0;
+                const status = temLocacao ? 'badge-occupied' : 'badge-available';
+                const statusText = temLocacao ? '🔴 Com equipamento' : '✅ Sem equipamento';
+                
+                html += `
+                    <div class="client-card" onclick="verDetalheCliente(${c.id})">
+                        <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
+                        <h3>${c.nome}</h3>
+                        <div class="client-info">📧 ${c.email}</div>
+                        <div class="client-info">📱 ${c.telefone}</div>
+                        <div class="client-info">📍 ${c.endereco}</div>
+                        <div class="client-info" style="font-size: 11px; color: #a7a9a9; margin-top: 8px;">Desde: ${c.dataCriacao}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('clienteDetalhes').innerHTML = '';
+        }
+
+        function verDetalheCliente(clienteId) {
+            const cliente = clientes.find(c => c.id === clienteId);
+            if (!cliente) return;
+
+            const equipLocado = locacoes.filter(l => l.clienteId === clienteId && l.ativo);
+            
+            let locacoesHtml = '';
+            if (equipLocado.length === 0) {
+                locacoesHtml = '<p style="color: #a7a9a9; text-align: center;">Sem equipamentos locados no momento</p>';
+            } else {
+                locacoesHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                equipLocado.forEach(loc => {
+                    const produto = produtos.find(p => p.id === loc.produtoId);
+                    locacoesHtml += `
+                        <div style="background: #f0f4f8; padding: 10px; border-radius: 8px; color: black;">
+                            <strong>${produto ? produto.nome : 'Produto'}</strong><br>
+                            <small>De: ${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')} até ${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')}</small><br>
+                            <small style="color: #32c3bb; font-weight: bold;">R$ ${loc.valorTotal.toFixed(2)}</small>
+                            <button class="btn btn-success btn-small" onclick="abrirDevolverProduto(${loc.id})" style="margin-top: 8px; width: 100%;">✓ Devolver</button>
+                        </div>
+                    `;
+                });
+                locacoesHtml += '</div>';
+            }
+
+            const html = `
+                <button class="btn btn-secondary back-btn" onclick="voltarClientes()">← Voltar</button>
+                <div class="cliente-detalhes">
+                    <h2>${cliente.nome}</h2>
+                    <div class="detail-section">
+                        <h3>👤 Dados Pessoais</h3>
+                        <div class="detail-item">
+                            <strong>Email</strong>
+                            <span>${cliente.email}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Telefone</strong>
+                            <span>${cliente.telefone}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Endereço</strong>
+                            <span>${cliente.endereco}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>📦 Locações Ativas</h3>
+                        ${locacoesHtml}
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente(${cliente.id})">➕ Locar Equipamento</button>
+                        <button class="btn btn-danger" onclick="deletarCliente(${cliente.id})">🗑️ Deletar Cliente</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('clienteDetalhes').innerHTML = html;
+            document.getElementById('clientesList').innerHTML = '';
+        }
+
+        function voltarClientes() {
+            document.getElementById('clienteDetalhes').innerHTML = '';
+            renderClientes();
+        }
+
+        function deletarCliente(clienteId) {
+            if (!confirm('Tem certeza?')) return;
+            clientes = clientes.filter(c => c.id !== clienteId);
+            localStorage.setItem('clientes', JSON.stringify(clientes));
+            showNotification('✓ Cliente deletado!');
+            voltarClientes();
+        }
+
+        // ========== LOCAÇÕES ==========
+        function abrirLocarProdutoCliente(clienteId) {
+            const cliente = clientes.find(c => c.id === clienteId);
+            if (!cliente) return;
+
+            const produtosDisponiveis = produtos.filter(p => p.disponivel);
+            if (produtosDisponiveis.length === 0) {
+                showNotification('Nenhum equipamento disponível!', 'error');
+                return;
+            }
+
+            const html = `
+                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente(${cliente.id})">← Voltar</button>
+                <div style="margin-bottom: 20px;">
+                    <h3>Selecione um Equipamento</h3>
+                    <div class="equipamentos-grid" style="margin-top: 15px;">
+                        ${produtosDisponiveis.map(p => `
+                            <div class="product-card" onclick="abrirLocar(${p.id}, ${clienteId})">
+                                <h3>${p.nome}</h3>
+                                <div class="product-serie">📌 ${p.serie}</div>
+                                <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('clienteDetalhes').innerHTML = html;
+        }
+
+        function abrirLocar(produtoId, clienteId) {
+            const produto = produtos.find(p => p.id === produtoId);
+            const cliente = clientes.find(c => c.id === clienteId);
+
+            if (!produto || !cliente) return;
+
+            document.getElementById('produtoIdLocar').value = produtoId;
+            document.getElementById('clienteIdLocar').value = clienteId;
+            document.getElementById('dataLocacao').valueAsDate = new Date();
+            document.getElementById('dataDevolucao').valueAsDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+            document.getElementById('produtoLocarInfo').innerHTML = `
+                <div class="detail-item">
+                    <strong>Produto</strong>
+                    <span>${produto.nome}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Série</strong>
+                    <span>${produto.serie}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Valor/Dia</strong>
+                    <span>R$ ${produto.valorDiario.toFixed(2)}</span>
+                </div>
+            `;
+
+            document.getElementById('clienteLocarInfo').innerHTML = `
+                <div class="detail-item">
+                    <strong>Cliente</strong>
+                    <span>${cliente.nome}</span>
+                </div>
+                <div class="detail-item">
+                    <strong>Email</strong>
+                    <span>${cliente.email}</span>
+                </div>
+            `;
+
+            document.getElementById('valorDiaLocar').dataset.valor = produto.valorDiario;
+            calcularValorLocacao();
+            openModal('modalLocarProduto');
+        }
+
+        function calcularValorLocacao() {
+            const dataLocacao = new Date(document.getElementById('dataLocacao').value);
+            const dataDevolucao = new Date(document.getElementById('dataDevolucao').value);
+            const valorDia = parseFloat(document.getElementById('valorDiaLocar').dataset.valor) || 0;
+
+            if (dataLocacao && dataDevolucao && dataDevolucao > dataLocacao) {
+                const dias = Math.ceil((dataDevolucao - dataLocacao) / (1000 * 60 * 60 * 24));
+                const total = dias * valorDia;
+
+                document.getElementById('diasLocacao').textContent = dias;
+                document.getElementById('totalLocar').textContent = `R$ ${total.toFixed(2)}`;
+                document.getElementById('valorDiaLocar').textContent = `R$ ${valorDia.toFixed(2)}`;
+            }
+        }
+
+        document.getElementById('dataLocacao').addEventListener('change', calcularValorLocacao);
+        document.getElementById('dataDevolucao').addEventListener('change', calcularValorLocacao);
+
+        document.getElementById('formLocar').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const produtoId = parseInt(document.getElementById('produtoIdLocar').value);
+            const clienteId = parseInt(document.getElementById('clienteIdLocar').value);
+            const produto = produtos.find(p => p.id === produtoId);
+
+            if (!produto) return;
+
+            const dataLocacao = new Date(document.getElementById('dataLocacao').value);
+            const dataDevolucao = new Date(document.getElementById('dataDevolucao').value);
+            const dias = Math.ceil((dataDevolucao - dataLocacao) / (1000 * 60 * 60 * 24));
+            const valorTotal = dias * produto.valorDiario;
+
+            const locacao = {
+                id: Date.now(),
+                produtoId: produtoId,
+                clienteId: clienteId,
+                dataLocacao: document.getElementById('dataLocacao').value,
+                dataDevolucao: document.getElementById('dataDevolucao').value,
+                valorTotal: valorTotal,
+                ativo: true,
+                dataDevolucaoReal: null,
+                valorFinal: null
+            };
+
+            locacoes.push(locacao);
+            produto.disponivel = false;
+            produto.locacaoId = locacao.id;
+
+            localStorage.setItem('locacoes', JSON.stringify(locacoes));
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+
+            showNotification('✓ Locação criada!');
+            closeModal('modalLocarProduto');
+            showView('clientes');
+            renderClientes();
+            updateDashboard();
+        });
+
+        function abrirDevolverProduto(locacaoId) {
+            const locacao = locacoes.find(l => l.id === locacaoId);
+            if (!locacao) return;
+
+            const produto = produtos.find(p => p.id === locacao.produtoId);
+            const cliente = clientes.find(c => c.id === locacao.clienteId);
+
+            document.getElementById('locacaoIdDevolver').value = locacaoId;
+            document.getElementById('dataDevolucaoReal').valueAsDate = new Date();
+
+            const dias = Math.ceil((new Date(locacao.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
+            let multa = 0;
+            if (dias < 0) {
+                multa = Math.abs(dias) * (produto.valorDiario * 0.5);
+            }
+
+            const valorFinal = locacao.valorTotal + multa;
+
+            document.getElementById('infoDevolver').innerHTML = `
+                <div class="detail-section">
+                    <h3>📦 Produto: ${produto.nome}</h3>
+                    <small>Série: ${produto.serie}</small>
+                </div>
+                <div class="detail-section">
+                    <h3>👤 Cliente: ${cliente.nome}</h3>
+                    <small>${cliente.email} | ${cliente.telefone}</small>
+                </div>
+                <div class="detail-section">
+                    <strong>Locado em:</strong> ${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')}<br>
+                    <strong>Devolução prevista:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
+                </div>
+            `;
+
+            document.getElementById('valorOriginalDevolver').textContent = `R$ ${locacao.valorTotal.toFixed(2)}`;
+            document.getElementById('multaDevolver').textContent = `R$ ${multa.toFixed(2)}`;
+            document.getElementById('totalPagarDevolver').textContent = `R$ ${valorFinal.toFixed(2)}`;
+
+            openModal('modalDevolverProduto');
+        }
+
+        document.getElementById('formDevolver').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const locacaoId = parseInt(document.getElementById('locacaoIdDevolver').value);
+            const locacao = locacoes.find(l => l.id === locacaoId);
+            const produto = produtos.find(p => p.id === locacao.produtoId);
+
+            const dias = Math.ceil((new Date(locacao.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
+            let multa = 0;
+            if (dias < 0) {
+                multa = Math.abs(dias) * (produto.valorDiario * 0.5);
+            }
+
+            locacao.ativo = false;
+            locacao.dataDevolucaoReal = document.getElementById('dataDevolucaoReal').value;
+            locacao.condicao = document.getElementById('condicao').value;
+            locacao.valorFinal = locacao.valorTotal + multa;
+
+            produto.disponivel = true;
+            produto.locacaoId = null;
+
+            localStorage.setItem('locacoes', JSON.stringify(locacoes));
+            localStorage.setItem('produtos', JSON.stringify(produtos));
+
+            showNotification('✓ Produto devolvido!');
+            closeModal('modalDevolverProduto');
+            updateDashboard();
+            renderEquipamentos();
+            renderClientes();
+        });
+
+        // ========== DASHBOARD ==========
+        function updateDashboard() {
+            document.getElementById('totalClientes').textContent = clientes.length;
+            document.getElementById('equipAtivos').textContent = locacoes.filter(l => l.ativo).length;
+            document.getElementById('equipLivres').textContent = produtos.filter(p => p.disponivel).length;
+
+            const valorTotal = locacoes
+                .filter(l => l.ativo)
+                .reduce((sum, l) => sum + l.valorTotal, 0);
+            
+            document.getElementById('valorTotal').textContent = `R$ ${valorTotal.toFixed(2)}`;
+
+            const container = document.getElementById('locacoesAtivas');
+            const ativas = locacoes.filter(l => l.ativo);
+
+            if (ativas.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhuma locação ativa</div>';
+                return;
+            }
+
+            let html = '<table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Devolução</th><th>Valor</th><th>Ações</th></tr></thead><tbody>';
+
+            ativas.forEach(loc => {
+                const produto = produtos.find(p => p.id === loc.produtoId);
+                const cliente = clientes.find(c => c.id === loc.clienteId);
+                const dias = Math.ceil((new Date(loc.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
+                const badge = dias < 0 ? 'badge-occupied' : 'badge-available';
+
+                html += `<tr>
+                    <td><strong>${produto.nome}</strong></td>
+                    <td>${cliente.nome}</td>
+                    <td>${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')} <span class="badge ${badge}">${dias}d</span></td>
+                    <td>R$ ${loc.valorTotal.toFixed(2)}</td>
+                    <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto(${loc.id})">Devolver</button></td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // ========== INICIALIZAÇÃO ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+            
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) closeModal(this.id);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
