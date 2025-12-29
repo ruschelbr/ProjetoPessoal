@@ -691,8 +691,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="contratoFile">Contrato (PDF, Word, etc) *</label>
-                    <input type="file" id="contratoFile" accept=".pdf,.doc,.docx,.txt" required style="padding: 8px;">
+                    <label for="contratoFile">Contrato (PDF, Word, etc) - Opcional</label>
+                    <input type="file" id="contratoFile" accept=".pdf,.doc,.docx,.txt" style="padding: 8px;">
+                    <small style="color: var(--text-light); display: block; margin-top: 6px;">Você pode adicionar o contrato depois se necessário</small>
                 </div>
 
                 <div class="detail-section">
@@ -719,6 +720,31 @@
 
             <input type="hidden" id="produtoIdLocar">
             <input type="hidden" id="clienteIdLocar">
+        </div>
+    </div>
+
+    <!-- MODAL: ADICIONAR CONTRATO -->
+    <div id="modalAdicionarContrato" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Anexar Contrato</h2>
+                <button class="close-btn" onclick="closeModal('modalAdicionarContrato')">&times;</button>
+            </div>
+            <form id="formAdicionarContrato">
+                <div id="infoContratoModal"></div>
+
+                <div class="form-group">
+                    <label for="contratoFileModal">Selecione o arquivo (PDF, Word, etc) *</label>
+                    <input type="file" id="contratoFileModal" accept=".pdf,.doc,.docx,.txt" required style="padding: 8px;">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">✓ Anexar Contrato</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('modalAdicionarContrato')">Cancelar</button>
+                </div>
+            </form>
+
+            <input type="hidden" id="locacaoIdContrato">
         </div>
     </div>
 
@@ -1333,7 +1359,7 @@
             const contratoFile = document.getElementById('contratoFile').files[0];
             const produto = produtos.find(p => p.id === produtoId);
 
-            if (!produto || !contratoFile) {
+            if (!produto) {
                 showNotification('❌ Preencha todos os campos!', 'error');
                 return;
             }
@@ -1353,24 +1379,27 @@
                 ativo: true,
                 dataDevolucaoReal: null,
                 valorFinal: null,
-                temContrato: true
+                temContrato: contratoFile ? true : false
             };
 
             // Salvar locação
             saveLocacao(locacao);
 
-            // Salvar contrato com delay para sincronização
-            setTimeout(() => {
-                salvarContratoFirebase(locacao.id, contratoFile);
-            }, 500);
+            // Salvar contrato com delay para sincronização - APENAS se arquivo foi enviado
+            if (contratoFile) {
+                setTimeout(() => {
+                    salvarContratoFirebase(locacao.id, contratoFile);
+                }, 500);
+            }
 
             // Atualizar produto como não disponível
             produto.disponivel = false;
             produto.locacaoId = locacao.id;
             saveProduto(produto);
 
-            showNotification('✓ Locação e contrato salvos!');
+            showNotification('✓ Locação criada com sucesso!');
             closeModal('modalLocarProduto');
+            document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
             showView('clientes');
         });
 
@@ -1391,6 +1420,7 @@
             }
 
             const valorFinal = locacao.valorTotal + multa;
+            const temContrato = contratosMap && contratosMap[locacao.id];
 
             document.getElementById('infoDevolver').innerHTML = `
                 <div class="detail-section">
@@ -1442,6 +1472,7 @@
 
             showNotification('✓ Produto devolvido!');
             closeModal('modalDevolverProduto');
+            document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
         });
 
         // ========== DASHBOARD ==========
@@ -1472,7 +1503,7 @@
                     const temContrato = contratosMap && contratosMap[loc.id];
                     const botaoContrato = temContrato
                         ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
-                        : '<span style="color: #a7a9a9;">Sem arquivo</span>';
+                        : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">➕ Adicionar</button>`;
 
                     html += `<tr>
                         <td><strong>${produto.nome}</strong></td>
@@ -1548,7 +1579,7 @@
                 const cliente = clientes.find(c => c.id === loc.clienteId);
                 const botaoContrato = contratosMap && contratosMap[loc.id]
                     ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
-                    : '<span style="color: #a7a9a9;">Sem arquivo</span>';
+                    : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">➕ Adicionar</button>`;
 
                 html += `<tr>
                     <td>${produto ? produto.nome : 'Desconhecido'}</td>
@@ -1601,6 +1632,54 @@
                 showNotification('❌ Erro ao fazer download!', 'error');
             }
         }
+
+        function abrirAdicionarContrato(locacaoId) {
+            const locacao = locacoes.find(l => l.id === locacaoId);
+            if (!locacao) return;
+
+            const produto = produtos.find(p => p.id === locacao.produtoId);
+            const cliente = clientes.find(c => c.id === locacao.clienteId);
+
+            document.getElementById('locacaoIdContrato').value = locacaoId;
+            document.getElementById('contratoFileModal').value = ''; // Limpar input
+
+            document.getElementById('infoContratoModal').innerHTML = `
+                <div class="detail-section">
+                    <h3>📦 Produto: ${produto.nome}</h3>
+                    <small>Série: ${produto.serie}</small>
+                </div>
+                <div class="detail-section">
+                    <h3>👤 Cliente: ${cliente.nome}</h3>
+                    <small>${cliente.email} | ${cliente.telefone}</small>
+                </div>
+                <div class="detail-section">
+                    <strong>Locação:</strong> ${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')} até ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}<br>
+                </div>
+            `;
+
+            openModal('modalAdicionarContrato');
+        }
+
+        document.getElementById('formAdicionarContrato').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const locacaoId = document.getElementById('locacaoIdContrato').value;
+            const contratoFile = document.getElementById('contratoFileModal').files[0];
+
+            if (!contratoFile) {
+                showNotification('❌ Selecione um arquivo!', 'error');
+                return;
+            }
+
+            salvarContratoFirebase(locacaoId, contratoFile);
+            closeModal('modalAdicionarContrato');
+            document.getElementById('contratoFileModal').value = ''; // Limpar input
+            
+            // Recarregar a view atual para mostrar o novo contrato
+            const activeView = document.querySelector('.view.active').id;
+            if (activeView === 'dashboard') updateDashboard();
+            else if (activeView === 'historico') renderHistorico();
+        });
 
         // ========== INICIALIZAÇÃO ==========
         document.addEventListener('DOMContentLoaded', function() {
