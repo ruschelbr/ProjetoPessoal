@@ -781,38 +781,72 @@
         }
 
         function saveProduto(produto) {
-            db.ref('produtos/' + produto.id).set(produto).catch(err => {
-                console.error('Erro ao salvar produto:', err);
-                showNotification('Erro ao salvar produto', 'error');
-            });
+            produtos = produtos.filter(p => p.id !== produto.id);
+            produtos.push(produto);
+            salvarDadosLocais();
+            
+            // Tentar sincronizar com Firebase
+            try {
+                db.ref('produtos/' + produto.id).set(produto).catch(err => {
+                    console.log('Firebase indisponível, salvo localmente');
+                });
+            } catch(e) {
+                console.log('Firebase não configurado');
+            }
         }
 
         function deleteProdutoFirebase(produtoId) {
-            db.ref('produtos/' + produtoId).remove().catch(err => {
-                console.error('Erro ao deletar produto:', err);
-                showNotification('Erro ao deletar produto', 'error');
-            });
+            produtos = produtos.filter(p => p.id !== produtoId);
+            salvarDadosLocais();
+            
+            try {
+                db.ref('produtos/' + produtoId).remove().catch(err => {
+                    console.log('Firebase indisponível');
+                });
+            } catch(e) {
+                console.log('Firebase não configurado');
+            }
         }
 
         function saveCliente(cliente) {
-            db.ref('clientes/' + cliente.id).set(cliente).catch(err => {
-                console.error('Erro ao salvar cliente:', err);
-                showNotification('Erro ao salvar cliente', 'error');
-            });
+            clientes = clientes.filter(c => c.id !== cliente.id);
+            clientes.push(cliente);
+            salvarDadosLocais();
+            
+            try {
+                db.ref('clientes/' + cliente.id).set(cliente).catch(err => {
+                    console.log('Firebase indisponível');
+                });
+            } catch(e) {
+                console.log('Firebase não configurado');
+            }
         }
 
         function deleteClienteFirebase(clienteId) {
-            db.ref('clientes/' + clienteId).remove().catch(err => {
-                console.error('Erro ao deletar cliente:', err);
-                showNotification('Erro ao deletar cliente', 'error');
-            });
+            clientes = clientes.filter(c => c.id !== clienteId);
+            salvarDadosLocais();
+            
+            try {
+                db.ref('clientes/' + clienteId).remove().catch(err => {
+                    console.log('Firebase indisponível');
+                });
+            } catch(e) {
+                console.log('Firebase não configurado');
+            }
         }
 
         function saveLocacao(locacao) {
-            db.ref('locacoes/' + locacao.id).set(locacao).catch(err => {
-                console.error('Erro ao salvar locação:', err);
-                showNotification('Erro ao salvar locação', 'error');
-            });
+            locacoes = locacoes.filter(l => l.id !== locacao.id);
+            locacoes.push(locacao);
+            salvarDadosLocais();
+            
+            try {
+                db.ref('locacoes/' + locacao.id).set(locacao).catch(err => {
+                    console.log('Firebase indisponível');
+                });
+            } catch(e) {
+                console.log('Firebase não configurado');
+            }
         }
 
         // ========== FUNÇÕES PRINCIPAIS ==========
@@ -1343,10 +1377,38 @@
             container.innerHTML = html;
         }
 
+        // ========== ARMAZENAMENTO LOCAL ==========
+        function carregarDadosLocais() {
+            const dadosSalvos = localStorage.getItem('locacaoEquipamentos');
+            if (dadosSalvos) {
+                const dados = JSON.parse(dadosSalvos);
+                produtos = dados.produtos || [];
+                clientes = dados.clientes || [];
+                locacoes = dados.locacoes || [];
+            }
+        }
+
+        function salvarDadosLocais() {
+            const dados = {
+                produtos: produtos,
+                clientes: clientes,
+                locacoes: locacoes
+            };
+            localStorage.setItem('locacaoEquipamentos', JSON.stringify(dados));
+        }
+
         // ========== INICIALIZAÇÃO ==========
         document.addEventListener('DOMContentLoaded', function() {
-            loadDadosFromFirebase();
+            // Carregar dados locais
+            carregarDadosLocais();
             updateDashboard();
+            
+            // Tentar conectar ao Firebase (opcional)
+            try {
+                loadDadosFromFirebase();
+            } catch(e) {
+                console.log('Firebase não disponível, usando armazenamento local');
+            }
             
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', function(e) {
