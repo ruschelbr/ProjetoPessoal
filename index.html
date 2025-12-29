@@ -122,6 +122,20 @@
             font-size: 12px;
         }
 
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         .container {
             max-width: 1280px;
             margin: 0 auto;
@@ -712,11 +726,94 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+
     <script>
+        // ========== CONFIGURAÇÃO FIREBASE ==========
+        // ⚠️ SUBSTITUIR COM SEUS DADOS DO FIREBASE
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "seu-projeto.firebaseapp.com",
+            databaseURL: "https://seu-projeto-default-rtdb.firebaseio.com",
+            projectId: "seu-projeto",
+            storageBucket: "seu-projeto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123def456"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
         // ========== DADOS ==========
-        let produtos = JSON.parse(localStorage.getItem('produtos')) || [];
-        let clientes = JSON.parse(localStorage.getItem('clientes')) || [];
-        let locacoes = JSON.parse(localStorage.getItem('locacoes')) || [];
+        let produtos = [];
+        let clientes = [];
+        let locacoes = [];
+
+        // ========== FUNÇÕES DE SINCRONIZAÇÃO FIREBASE ==========
+        function loadDadosFromFirebase() {
+            // Carregar produtos
+            db.ref('produtos').on('value', (snapshot) => {
+                const data = snapshot.val();
+                produtos = data ? Object.values(data) : [];
+                if (document.getElementById('equipamentos').classList.contains('active')) {
+                    renderEquipamentos();
+                }
+            });
+
+            // Carregar clientes
+            db.ref('clientes').on('value', (snapshot) => {
+                const data = snapshot.val();
+                clientes = data ? Object.values(data) : [];
+                if (document.getElementById('clientes').classList.contains('active')) {
+                    renderClientes();
+                }
+            });
+
+            // Carregar locações
+            db.ref('locacoes').on('value', (snapshot) => {
+                const data = snapshot.val();
+                locacoes = data ? Object.values(data) : [];
+                updateDashboard();
+            });
+        }
+
+        function saveProduto(produto) {
+            db.ref('produtos/' + produto.id).set(produto).catch(err => {
+                console.error('Erro ao salvar produto:', err);
+                showNotification('Erro ao salvar produto', 'error');
+            });
+        }
+
+        function deleteProdutoFirebase(produtoId) {
+            db.ref('produtos/' + produtoId).remove().catch(err => {
+                console.error('Erro ao deletar produto:', err);
+                showNotification('Erro ao deletar produto', 'error');
+            });
+        }
+
+        function saveCliente(cliente) {
+            db.ref('clientes/' + cliente.id).set(cliente).catch(err => {
+                console.error('Erro ao salvar cliente:', err);
+                showNotification('Erro ao salvar cliente', 'error');
+            });
+        }
+
+        function deleteClienteFirebase(clienteId) {
+            db.ref('clientes/' + clienteId).remove().catch(err => {
+                console.error('Erro ao deletar cliente:', err);
+                showNotification('Erro ao deletar cliente', 'error');
+            });
+        }
+
+        function saveLocacao(locacao) {
+            db.ref('locacoes/' + locacao.id).set(locacao).catch(err => {
+                console.error('Erro ao salvar locação:', err);
+                showNotification('Erro ao salvar locação', 'error');
+            });
+        }
 
         // ========== FUNÇÕES PRINCIPAIS ==========
         function showView(viewName) {
@@ -763,7 +860,7 @@
             e.preventDefault();
             
             const produto = {
-                id: Date.now(),
+                id: Date.now().toString(),
                 nome: document.getElementById('nomeProduto').value,
                 serie: document.getElementById('serieProduto').value,
                 descricao: document.getElementById('descricaoProduto').value,
@@ -772,11 +869,9 @@
                 locacaoId: null
             };
 
-            produtos.push(produto);
-            localStorage.setItem('produtos', JSON.stringify(produtos));
+            saveProduto(produto);
             showNotification('✓ Produto adicionado!');
             closeModal('modalAddProduct');
-            renderEquipamentos();
         });
 
         function renderEquipamentos() {
@@ -794,7 +889,7 @@
                 const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
                 
                 html += `
-                    <div class="product-card" onclick="verDetalheProduto(${p.id})">
+                    <div class="product-card" onclick="verDetalheProduto('${p.id}')">
                         <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
                         <h3>${p.nome}</h3>
                         <div class="product-serie">📌 ${p.serie}</div>
@@ -857,7 +952,7 @@
                     </div>
                     ${produto.disponivel ? `
                         <div class="actions">
-                            <button class="btn btn-danger" onclick="deletarProduto(${produto.id})">🗑️ Deletar</button>
+                            <button class="btn btn-danger" onclick="deletarProduto('${produto.id}')">🗑️ Deletar</button>
                         </div>
                     ` : ''}
                 </div>
@@ -874,8 +969,7 @@
 
         function deletarProduto(produtoId) {
             if (!confirm('Tem certeza?')) return;
-            produtos = produtos.filter(p => p.id !== produtoId);
-            localStorage.setItem('produtos', JSON.stringify(produtos));
+            deleteProdutoFirebase(produtoId);
             showNotification('✓ Produto deletado!');
             voltarEquipamentos();
         }
@@ -890,7 +984,7 @@
             e.preventDefault();
             
             const cliente = {
-                id: Date.now(),
+                id: Date.now().toString(),
                 nome: document.getElementById('nomeCliente').value,
                 email: document.getElementById('emailCliente').value,
                 telefone: document.getElementById('telefoneCliente').value,
@@ -898,11 +992,9 @@
                 dataCriacao: new Date().toLocaleDateString('pt-BR')
             };
 
-            clientes.push(cliente);
-            localStorage.setItem('clientes', JSON.stringify(clientes));
+            saveCliente(cliente);
             showNotification('✓ Cliente adicionado!');
             closeModal('modalAddClient');
-            renderClientes();
         });
 
         function renderClientes() {
@@ -922,7 +1014,7 @@
                 const statusText = temLocacao ? '🔴 Com equipamento' : '✅ Sem equipamento';
                 
                 html += `
-                    <div class="client-card" onclick="verDetalheCliente(${c.id})">
+                    <div class="client-card" onclick="verDetalheCliente('${c.id}')">
                         <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
                         <h3>${c.nome}</h3>
                         <div class="client-info">📧 ${c.email}</div>
@@ -956,7 +1048,7 @@
                             <strong>${produto ? produto.nome : 'Produto'}</strong><br>
                             <small>De: ${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')} até ${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')}</small><br>
                             <small style="color: #32c3bb; font-weight: bold;">R$ ${loc.valorTotal.toFixed(2)}</small>
-                            <button class="btn btn-success btn-small" onclick="abrirDevolverProduto(${loc.id})" style="margin-top: 8px; width: 100%;">✓ Devolver</button>
+                            <button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')" style="margin-top: 8px; width: 100%;">✓ Devolver</button>
                         </div>
                     `;
                 });
@@ -989,8 +1081,8 @@
                     </div>
 
                     <div class="actions">
-                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente(${cliente.id})">➕ Locar Equipamento</button>
-                        <button class="btn btn-danger" onclick="deletarCliente(${cliente.id})">🗑️ Deletar Cliente</button>
+                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente('${cliente.id}')">➕ Locar Equipamento</button>
+                        <button class="btn btn-danger" onclick="deletarCliente('${cliente.id}')">🗑️ Deletar Cliente</button>
                     </div>
                 </div>
             `;
@@ -1006,8 +1098,7 @@
 
         function deletarCliente(clienteId) {
             if (!confirm('Tem certeza?')) return;
-            clientes = clientes.filter(c => c.id !== clienteId);
-            localStorage.setItem('clientes', JSON.stringify(clientes));
+            deleteClienteFirebase(clienteId);
             showNotification('✓ Cliente deletado!');
             voltarClientes();
         }
@@ -1024,12 +1115,12 @@
             }
 
             const html = `
-                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente(${cliente.id})">← Voltar</button>
+                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente('${cliente.id}')">← Voltar</button>
                 <div style="margin-bottom: 20px;">
                     <h3>Selecione um Equipamento</h3>
                     <div class="equipamentos-grid" style="margin-top: 15px;">
                         ${produtosDisponiveis.map(p => `
-                            <div class="product-card" onclick="abrirLocar(${p.id}, ${clienteId})">
+                            <div class="product-card" onclick="abrirLocar('${p.id}', '${clienteId}')">
                                 <h3>${p.nome}</h3>
                                 <div class="product-serie">📌 ${p.serie}</div>
                                 <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
@@ -1105,8 +1196,8 @@
         document.getElementById('formLocar').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const produtoId = parseInt(document.getElementById('produtoIdLocar').value);
-            const clienteId = parseInt(document.getElementById('clienteIdLocar').value);
+            const produtoId = document.getElementById('produtoIdLocar').value;
+            const clienteId = document.getElementById('clienteIdLocar').value;
             const produto = produtos.find(p => p.id === produtoId);
 
             if (!produto) return;
@@ -1117,7 +1208,7 @@
             const valorTotal = dias * produto.valorDiario;
 
             const locacao = {
-                id: Date.now(),
+                id: Date.now().toString(),
                 produtoId: produtoId,
                 clienteId: clienteId,
                 dataLocacao: document.getElementById('dataLocacao').value,
@@ -1128,18 +1219,17 @@
                 valorFinal: null
             };
 
-            locacoes.push(locacao);
+            // Salvar locação
+            saveLocacao(locacao);
+
+            // Atualizar produto como não disponível
             produto.disponivel = false;
             produto.locacaoId = locacao.id;
-
-            localStorage.setItem('locacoes', JSON.stringify(locacoes));
-            localStorage.setItem('produtos', JSON.stringify(produtos));
+            saveProduto(produto);
 
             showNotification('✓ Locação criada!');
             closeModal('modalLocarProduto');
             showView('clientes');
-            renderClientes();
-            updateDashboard();
         });
 
         function abrirDevolverProduto(locacaoId) {
@@ -1185,7 +1275,7 @@
         document.getElementById('formDevolver').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            const locacaoId = parseInt(document.getElementById('locacaoIdDevolver').value);
+            const locacaoId = document.getElementById('locacaoIdDevolver').value;
             const locacao = locacoes.find(l => l.id === locacaoId);
             const produto = produtos.find(p => p.id === locacao.produtoId);
 
@@ -1200,17 +1290,16 @@
             locacao.condicao = document.getElementById('condicao').value;
             locacao.valorFinal = locacao.valorTotal + multa;
 
+            // Salvar locação finalizada
+            saveLocacao(locacao);
+
+            // Atualizar produto como disponível
             produto.disponivel = true;
             produto.locacaoId = null;
-
-            localStorage.setItem('locacoes', JSON.stringify(locacoes));
-            localStorage.setItem('produtos', JSON.stringify(produtos));
+            saveProduto(produto);
 
             showNotification('✓ Produto devolvido!');
             closeModal('modalDevolverProduto');
-            updateDashboard();
-            renderEquipamentos();
-            renderClientes();
         });
 
         // ========== DASHBOARD ==========
@@ -1246,7 +1335,7 @@
                     <td>${cliente.nome}</td>
                     <td>${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')} <span class="badge ${badge}">${dias}d</span></td>
                     <td>R$ ${loc.valorTotal.toFixed(2)}</td>
-                    <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto(${loc.id})">Devolver</button></td>
+                    <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')">Devolver</button></td>
                 </tr>`;
             });
 
@@ -1256,6 +1345,7 @@
 
         // ========== INICIALIZAÇÃO ==========
         document.addEventListener('DOMContentLoaded', function() {
+            loadDadosFromFirebase();
             updateDashboard();
             
             document.querySelectorAll('.modal').forEach(modal => {
