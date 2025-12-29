@@ -891,17 +891,29 @@
                 };
                 db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
                     console.log('✓ Contrato salvo com sucesso');
+                    showNotification('✓ Contrato anexado com sucesso!');
+                    // Atualizar mapa local
+                    contratosMap[locacaoId] = contratoData;
                 }).catch(err => {
                     console.error('Erro ao salvar contrato:', err.message);
+                    showNotification('❌ Erro ao salvar contrato: ' + err.message, 'error');
                 });
+            };
+            reader.onerror = function(err) {
+                console.error('Erro ao ler arquivo:', err.message);
+                showNotification('❌ Erro ao ler arquivo!', 'error');
             };
             reader.readAsDataURL(arquivo);
         }
 
         function carregarContratos() {
-            db.ref('contratos').on('value', (snapshot) => {
+            db.ref('contratos').once('value', (snapshot) => {
                 const data = snapshot.val();
                 contratosMap = data || {};
+                console.log('✓ Contratos carregados:', Object.keys(contratosMap).length);
+            }).catch(err => {
+                console.error('Erro ao carregar contratos:', err.message);
+                contratosMap = {};
             });
         }
 
@@ -959,7 +971,7 @@
             notif.className = `notification ${type}`;
             notif.textContent = msg;
             notif.style.cssText = `
-                position: fixed; top: 20px; right: 20px; 
+                position: fixed; bottom: 20px; right: 20px; 
                 background: white; padding: 15px 20px; 
                 border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                 z-index: 3000; animation: slideIn 0.3s;
@@ -1347,8 +1359,10 @@
             // Salvar locação
             saveLocacao(locacao);
 
-            // Salvar contrato
-            salvarContratoFirebase(locacao.id, contratoFile);
+            // Salvar contrato com delay para sincronização
+            setTimeout(() => {
+                salvarContratoFirebase(locacao.id, contratoFile);
+            }, 500);
 
             // Atualizar produto como não disponível
             produto.disponivel = false;
@@ -1455,9 +1469,10 @@
                     const cliente = clientes.find(c => c.id === loc.clienteId);
                     const dias = Math.ceil((new Date(loc.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
                     const badge = dias < 0 ? 'badge-occupied' : 'badge-available';
-                    const botaoContrato = contratosMap && contratosMap[loc.id]
+                    const temContrato = contratosMap && contratosMap[loc.id];
+                    const botaoContrato = temContrato
                         ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
-                        : '<span style="color: #a7a9a9;">Carregando...</span>';
+                        : '<span style="color: #a7a9a9;">Sem arquivo</span>';
 
                     html += `<tr>
                         <td><strong>${produto.nome}</strong></td>
@@ -1551,17 +1566,40 @@
         }
 
         function downloadContrato(locacaoId) {
-            const contrato = contratosMap[locacaoId];
+            // Tentar primeiro do mapa local
+            let contrato = contratosMap[locacaoId];
+            
             if (!contrato) {
-                showNotification('❌ Contrato não encontrado!', 'error');
-                return;
+                // Se não encontrar, buscar do Firebase
+                db.ref('contratos/' + locacaoId).once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        contrato = data;
+                        contratosMap[locacaoId] = data;
+                        executarDownload(contrato);
+                    } else {
+                        showNotification('❌ Contrato não encontrado!', 'error');
+                    }
+                }).catch(err => {
+                    console.error('Erro ao buscar contrato:', err.message);
+                    showNotification('❌ Erro ao buscar contrato!', 'error');
+                });
+            } else {
+                executarDownload(contrato);
             }
+        }
 
-            const link = document.createElement('a');
-            link.href = contrato.data;
-            link.download = contrato.nome;
-            link.click();
-            showNotification('✓ Download iniciado!');
+        function executarDownload(contrato) {
+            try {
+                const link = document.createElement('a');
+                link.href = contrato.data;
+                link.download = contrato.nome;
+                link.click();
+                showNotification('✓ Download iniciado!');
+            } catch (err) {
+                console.error('Erro ao fazer download:', err.message);
+                showNotification('❌ Erro ao fazer download!', 'error');
+            }
         }
 
         // ========== INICIALIZAÇÃO ==========
