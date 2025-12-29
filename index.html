@@ -781,72 +781,53 @@
         }
 
         function saveProduto(produto) {
-            produtos = produtos.filter(p => p.id !== produto.id);
-            produtos.push(produto);
-            salvarDadosLocais();
-            
-            // Tentar sincronizar com Firebase
-            try {
-                db.ref('produtos/' + produto.id).set(produto).catch(err => {
-                    console.log('Firebase indisponível, salvo localmente');
-                });
-            } catch(e) {
-                console.log('Firebase não configurado');
-            }
+            db.ref('produtos/' + produto.id).set(produto).then(() => {
+                console.log('✓ Produto salvo com sucesso');
+                showNotification('✓ Produto salvo com sucesso!');
+            }).catch(err => {
+                console.error('Erro ao salvar produto:', err.message);
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
+            });
         }
 
         function deleteProdutoFirebase(produtoId) {
-            produtos = produtos.filter(p => p.id !== produtoId);
-            salvarDadosLocais();
-            
-            try {
-                db.ref('produtos/' + produtoId).remove().catch(err => {
-                    console.log('Firebase indisponível');
-                });
-            } catch(e) {
-                console.log('Firebase não configurado');
-            }
+            db.ref('produtos/' + produtoId).remove().then(() => {
+                console.log('✓ Produto deletado');
+                showNotification('✓ Produto deletado!');
+            }).catch(err => {
+                console.error('Erro ao deletar:', err.message);
+                showNotification('❌ Erro ao deletar: ' + err.message, 'error');
+            });
         }
 
         function saveCliente(cliente) {
-            clientes = clientes.filter(c => c.id !== cliente.id);
-            clientes.push(cliente);
-            salvarDadosLocais();
-            
-            try {
-                db.ref('clientes/' + cliente.id).set(cliente).catch(err => {
-                    console.log('Firebase indisponível');
-                });
-            } catch(e) {
-                console.log('Firebase não configurado');
-            }
+            db.ref('clientes/' + cliente.id).set(cliente).then(() => {
+                console.log('✓ Cliente salvo com sucesso');
+                showNotification('✓ Cliente salvo com sucesso!');
+            }).catch(err => {
+                console.error('Erro ao salvar cliente:', err.message);
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
+            });
         }
 
         function deleteClienteFirebase(clienteId) {
-            clientes = clientes.filter(c => c.id !== clienteId);
-            salvarDadosLocais();
-            
-            try {
-                db.ref('clientes/' + clienteId).remove().catch(err => {
-                    console.log('Firebase indisponível');
-                });
-            } catch(e) {
-                console.log('Firebase não configurado');
-            }
+            db.ref('clientes/' + clienteId).remove().then(() => {
+                console.log('✓ Cliente deletado');
+                showNotification('✓ Cliente deletado!');
+            }).catch(err => {
+                console.error('Erro ao deletar:', err.message);
+                showNotification('❌ Erro ao deletar: ' + err.message, 'error');
+            });
         }
 
         function saveLocacao(locacao) {
-            locacoes = locacoes.filter(l => l.id !== locacao.id);
-            locacoes.push(locacao);
-            salvarDadosLocais();
-            
-            try {
-                db.ref('locacoes/' + locacao.id).set(locacao).catch(err => {
-                    console.log('Firebase indisponível');
-                });
-            } catch(e) {
-                console.log('Firebase não configurado');
-            }
+            db.ref('locacoes/' + locacao.id).set(locacao).then(() => {
+                console.log('✓ Locação salva com sucesso');
+                showNotification('✓ Locação criada com sucesso!');
+            }).catch(err => {
+                console.error('Erro ao salvar locação:', err.message);
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
+            });
         }
 
         // ========== FUNÇÕES PRINCIPAIS ==========
@@ -904,7 +885,7 @@
             };
 
             saveProduto(produto);
-            showNotification('✓ Produto adicionado!');
+            document.getElementById('formProduct').reset();
             closeModal('modalAddProduct');
         });
 
@@ -1027,7 +1008,7 @@
             };
 
             saveCliente(cliente);
-            showNotification('✓ Cliente adicionado!');
+            document.getElementById('formClient').reset();
             closeModal('modalAddClient');
         });
 
@@ -1377,38 +1358,13 @@
             container.innerHTML = html;
         }
 
-        // ========== ARMAZENAMENTO LOCAL ==========
-        function carregarDadosLocais() {
-            const dadosSalvos = localStorage.getItem('locacaoEquipamentos');
-            if (dadosSalvos) {
-                const dados = JSON.parse(dadosSalvos);
-                produtos = dados.produtos || [];
-                clientes = dados.clientes || [];
-                locacoes = dados.locacoes || [];
-            }
-        }
-
-        function salvarDadosLocais() {
-            const dados = {
-                produtos: produtos,
-                clientes: clientes,
-                locacoes: locacoes
-            };
-            localStorage.setItem('locacaoEquipamentos', JSON.stringify(dados));
-        }
-
         // ========== INICIALIZAÇÃO ==========
         document.addEventListener('DOMContentLoaded', function() {
-            // Carregar dados locais
-            carregarDadosLocais();
-            updateDashboard();
+            console.log('🚀 Iniciando Sistema de Locação');
+            console.log('Firebase inicializado:', firebase.app() ? 'SIM' : 'NÃO');
             
-            // Tentar conectar ao Firebase (opcional)
-            try {
-                loadDadosFromFirebase();
-            } catch(e) {
-                console.log('Firebase não disponível, usando armazenamento local');
-            }
+            loadDadosFromFirebase();
+            updateDashboard();
             
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', function(e) {
