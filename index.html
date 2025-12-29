@@ -419,7 +419,7 @@
 
         .product-card, .client-card {
             background: var(--surface);
-            padding: 20px;
+            padding: 24px;
             border-radius: 12px;
             cursor: pointer;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -427,6 +427,9 @@
             border: 1px solid var(--border);
             position: relative;
             border-left: 4px solid var(--primary);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
         }
 
         .product-card:hover, .client-card:hover {
@@ -437,6 +440,7 @@
         .product-card h3, .client-card h3 {
             margin-bottom: 12px;
             color: var(--text);
+            flex-grow: 1;
         }
 
         .product-serie, .product-valor, .client-info {
@@ -495,13 +499,41 @@
     </style>
 </head>
 <body>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1f2121 0%, #2a3f3d 100%); z-index: 1000; display: flex; align-items: center; justify-content: center; font-family: inherit;">
+        <div style="background: linear-gradient(180deg, #262828 0%, #1f2121 100%); padding: 60px 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(50,195,187,0.2); max-width: 420px; width: 90%; border: 2px solid rgba(50,195,187,0.3); position: relative; overflow: hidden;">
+            <!-- Elemento decorativo -->
+            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(50,195,187,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+            
+            <div style="position: relative; z-index: 1;">
+                <div style="text-align: center; margin-bottom: 50px;">
+                    <div style="font-size: 50px; margin-bottom: 15px;">🔐</div>
+                    <h1 style="color: var(--primary); margin: 0 0 8px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Sistema de Locação</h1>
+                    <p style="color: var(--text-light); margin: 0; font-size: 13px; font-weight: 400;">Equipamentos</p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label for="senhaOperador" style="font-weight: 600; color: var(--primary); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Autenticação</label>
+                    <input type="password" id="senhaOperador" placeholder="Digite sua senha" required style="font-size: 15px; padding: 14px 16px; margin-top: 10px;">
+                </div>
+
+                <button class="btn btn-primary" onclick="loginOperador()" style="width: 100%; padding: 12px 16px; font-size: 15px; font-weight: 600; margin-bottom: 15px; letter-spacing: 0.5px; transition: all 0.3s;">Entrar no Sistema</button>
+
+                <div style="text-align: center; color: var(--text-light); font-size: 12px;">
+                    <p style="margin: 0;">Acesso restrito a operadores autorizados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- HEADER -->
-    <header>
+    <header style="display: none;" id="mainHeader">
         <h1>🚀 Locação de Equipamentos</h1>
         <div class="header-buttons">
             <button class="btn btn-secondary" onclick="showView('dashboard')">📊 Dashboard</button>
             <button class="btn btn-secondary" onclick="showView('equipamentos')">📦 Equipamentos</button>
             <button class="btn btn-secondary" onclick="showView('clientes')">👥 Clientes</button>
+            <button class="btn btn-secondary" onclick="showView('historico')">📜 Histórico</button>
         </div>
     </header>
 
@@ -553,6 +585,16 @@
             </div>
             <div id="clientesList"></div>
             <div id="clienteDetalhes"></div>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div id="historico" class="view">
+            <h2>📜 Histórico de Devoluções</h2>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="buscaHistorico" placeholder="Buscar por cliente, equipamento..." style="flex: 1;">
+                <button class="btn btn-secondary" onclick="filtrarHistorico()">🔍 Buscar</button>
+            </div>
+            <div id="historicoList"></div>
         </div>
     </div>
 
@@ -648,6 +690,11 @@
                     <input type="date" id="dataDevolucao" required>
                 </div>
 
+                <div class="form-group">
+                    <label for="contratoFile">Contrato (PDF, Word, etc) *</label>
+                    <input type="file" id="contratoFile" accept=".pdf,.doc,.docx,.txt" required style="padding: 8px;">
+                </div>
+
                 <div class="detail-section">
                     <h3>💰 Cálculo</h3>
                     <div class="detail-item">
@@ -726,11 +773,19 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK - Versão Compatível -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 
     <script>
+        // ========== VARIÁVEIS GLOBAIS ==========
+        let produtos = [];
+        let clientes = [];
+        let locacoes = [];
+        let operadorAutenticado = false;
+        const SENHA_PADRAO = '140906'; // ⚠️ Senha do operador
+        let contratosMap = {};
+
         // ========== CONFIGURAÇÃO FIREBASE ==========
         // ⚠️ SUBSTITUIR COM SEUS DADOS DO FIREBASE
         const firebaseConfig = {
@@ -746,11 +801,6 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        // ========== DADOS ==========
-        let produtos = [];
-        let clientes = [];
-        let locacoes = [];
 
         // ========== FUNÇÕES DE SINCRONIZAÇÃO FIREBASE ==========
         function loadDadosFromFirebase() {
@@ -830,6 +880,60 @@
             });
         }
 
+        function salvarContratoFirebase(locacaoId, arquivo) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contratoData = {
+                    nome: arquivo.name,
+                    tamanho: arquivo.size,
+                    tipo: arquivo.type,
+                    data: e.target.result
+                };
+                db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
+                    console.log('✓ Contrato salvo com sucesso');
+                }).catch(err => {
+                    console.error('Erro ao salvar contrato:', err.message);
+                });
+            };
+            reader.readAsDataURL(arquivo);
+        }
+
+        function carregarContratos() {
+            db.ref('contratos').on('value', (snapshot) => {
+                const data = snapshot.val();
+                contratosMap = data || {};
+            });
+        }
+
+        // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
+        function loginOperador() {
+            const senha = document.getElementById('senhaOperador').value;
+            if (senha === SENHA_PADRAO) {
+                operadorAutenticado = true;
+                document.getElementById('loginScreen').style.zIndex = '1000';
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainHeader').style.display = 'flex';
+                document.getElementById('senhaOperador').value = '';
+                showNotification('✓ Login realizado com sucesso!');
+                showView('dashboard');
+            } else {
+                showNotification('❌ Senha incorreta!', 'error');
+            }
+        }
+
+        function logoutOperador() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                operadorAutenticado = false;
+                document.getElementById('mainHeader').style.display = 'none';
+                document.getElementById('loginScreen').style.zIndex = '9999';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('senhaOperador').value = '';
+                document.getElementById('senhaOperador').focus();
+                window.scrollTo(0, 0);
+                showNotification('✓ Saiu do sistema!');
+            }
+        }
+
         // ========== FUNÇÕES PRINCIPAIS ==========
         function showView(viewName) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -839,6 +943,7 @@
             if (viewName === 'dashboard') updateDashboard();
             else if (viewName === 'equipamentos') renderEquipamentos();
             else if (viewName === 'clientes') renderClientes();
+            else if (viewName === 'historico') renderHistorico();
         }
 
         function openModal(modalId) {
@@ -1213,9 +1318,13 @@
 
             const produtoId = document.getElementById('produtoIdLocar').value;
             const clienteId = document.getElementById('clienteIdLocar').value;
+            const contratoFile = document.getElementById('contratoFile').files[0];
             const produto = produtos.find(p => p.id === produtoId);
 
-            if (!produto) return;
+            if (!produto || !contratoFile) {
+                showNotification('❌ Preencha todos os campos!', 'error');
+                return;
+            }
 
             const dataLocacao = new Date(document.getElementById('dataLocacao').value);
             const dataDevolucao = new Date(document.getElementById('dataDevolucao').value);
@@ -1231,18 +1340,22 @@
                 valorTotal: valorTotal,
                 ativo: true,
                 dataDevolucaoReal: null,
-                valorFinal: null
+                valorFinal: null,
+                temContrato: true
             };
 
             // Salvar locação
             saveLocacao(locacao);
+
+            // Salvar contrato
+            salvarContratoFirebase(locacao.id, contratoFile);
 
             // Atualizar produto como não disponível
             produto.disponivel = false;
             produto.locacaoId = locacao.id;
             saveProduto(produto);
 
-            showNotification('✓ Locação criada!');
+            showNotification('✓ Locação e contrato salvos!');
             closeModal('modalLocarProduto');
             showView('clientes');
         });
@@ -1334,28 +1447,121 @@
 
             if (ativas.length === 0) {
                 container.innerHTML = '<div class="empty-state">Nenhuma locação ativa</div>';
+            } else {
+                let html = '<table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Devolução</th><th>Valor</th><th>Contrato</th><th>Ação</th></tr></thead><tbody>';
+
+                ativas.forEach(loc => {
+                    const produto = produtos.find(p => p.id === loc.produtoId);
+                    const cliente = clientes.find(c => c.id === loc.clienteId);
+                    const dias = Math.ceil((new Date(loc.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
+                    const badge = dias < 0 ? 'badge-occupied' : 'badge-available';
+                    const botaoContrato = contratosMap && contratosMap[loc.id]
+                        ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
+                        : '<span style="color: #a7a9a9;">Carregando...</span>';
+
+                    html += `<tr>
+                        <td><strong>${produto.nome}</strong></td>
+                        <td>${cliente.nome}</td>
+                        <td>${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')} <span class="badge ${badge}">${dias}d</span></td>
+                        <td>R$ ${loc.valorTotal.toFixed(2)}</td>
+                        <td>${botaoContrato}</td>
+                        <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')">Devolver</button></td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            }
+        }
+
+        // ========== HISTÓRICO ==========
+        function renderHistorico() {
+            const container = document.getElementById('historicoList');
+            const devolvidas = locacoes.filter(l => !l.ativo);
+
+            if (devolvidas.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhuma devolução registrada</div>';
                 return;
             }
 
-            let html = '<table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Devolução</th><th>Valor</th><th>Ações</th></tr></thead><tbody>';
+            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Locação</th><th>Devolução</th><th>Valor</th><th>Condição</th><th>Contrato</th></tr></thead><tbody>';
 
-            ativas.forEach(loc => {
+            devolvidas.forEach(loc => {
                 const produto = produtos.find(p => p.id === loc.produtoId);
                 const cliente = clientes.find(c => c.id === loc.clienteId);
-                const dias = Math.ceil((new Date(loc.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
-                const badge = dias < 0 ? 'badge-occupied' : 'badge-available';
+                const botaoContrato = contratosMap && contratosMap[loc.id] 
+                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
+                    : '<span style="color: #a7a9a9;">Sem arquivo</span>';
 
                 html += `<tr>
-                    <td><strong>${produto.nome}</strong></td>
-                    <td>${cliente.nome}</td>
-                    <td>${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')} <span class="badge ${badge}">${dias}d</span></td>
+                    <td>${produto ? produto.nome : 'Desconhecido'}</td>
+                    <td>${cliente ? cliente.nome : 'Desconhecido'}</td>
+                    <td>${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')}</td>
+                    <td>${new Date(loc.dataDevolucaoReal).toLocaleDateString('pt-BR')}</td>
                     <td>R$ ${loc.valorTotal.toFixed(2)}</td>
-                    <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')">Devolver</button></td>
+                    <td><span class="badge badge-available">${loc.condicao}</span></td>
+                    <td>${botaoContrato}</td>
                 </tr>`;
             });
 
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             container.innerHTML = html;
+        }
+
+        function filtrarHistorico() {
+            const busca = document.getElementById('buscaHistorico').value.toLowerCase();
+            const devolvidas = locacoes.filter(l => !l.ativo);
+            const container = document.getElementById('historicoList');
+
+            const filtradas = devolvidas.filter(loc => {
+                const produto = produtos.find(p => p.id === loc.produtoId);
+                const cliente = clientes.find(c => c.id === loc.clienteId);
+                const textoProduto = produto ? produto.nome.toLowerCase() : '';
+                const textoCliente = cliente ? cliente.nome.toLowerCase() : '';
+                return textoProduto.includes(busca) || textoCliente.includes(busca);
+            });
+
+            if (filtradas.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum resultado encontrado</div>';
+                return;
+            }
+
+            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Locação</th><th>Devolução</th><th>Valor</th><th>Condição</th><th>Contrato</th></tr></thead><tbody>';
+
+            filtradas.forEach(loc => {
+                const produto = produtos.find(p => p.id === loc.produtoId);
+                const cliente = clientes.find(c => c.id === loc.clienteId);
+                const botaoContrato = contratosMap && contratosMap[loc.id]
+                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
+                    : '<span style="color: #a7a9a9;">Sem arquivo</span>';
+
+                html += `<tr>
+                    <td>${produto ? produto.nome : 'Desconhecido'}</td>
+                    <td>${cliente ? cliente.nome : 'Desconhecido'}</td>
+                    <td>${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')}</td>
+                    <td>${new Date(loc.dataDevolucaoReal).toLocaleDateString('pt-BR')}</td>
+                    <td>R$ ${loc.valorTotal.toFixed(2)}</td>
+                    <td><span class="badge badge-available">${loc.condicao}</span></td>
+                    <td>${botaoContrato}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function downloadContrato(locacaoId) {
+            const contrato = contratosMap[locacaoId];
+            if (!contrato) {
+                showNotification('❌ Contrato não encontrado!', 'error');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = contrato.data;
+            link.download = contrato.nome;
+            link.click();
+            showNotification('✓ Download iniciado!');
         }
 
         // ========== INICIALIZAÇÃO ==========
@@ -1364,12 +1570,18 @@
             console.log('Firebase inicializado:', firebase.app() ? 'SIM' : 'NÃO');
             
             loadDadosFromFirebase();
+            carregarContratos();
             updateDashboard();
             
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('click', function(e) {
                     if (e.target === this) closeModal(this.id);
                 });
+            });
+
+            // Verificar senha ao pressionar Enter na tela de login
+            document.getElementById('senhaOperador').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginOperador();
             });
         });
     </script>
