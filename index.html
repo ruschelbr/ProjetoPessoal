@@ -469,7 +469,7 @@
             margin-top: 20px;
         }
 
-        /* NOVO: Filtros de categoria */
+        /* FILTROS DE CATEGORIA */
         .categoria-filter {
             display: flex;
             gap: 10px;
@@ -499,7 +499,38 @@
             border-color: var(--primary);
         }
 
-        /* NOVO: Filtros em dropdown */
+        /* FILTROS DE SUBCATEGORIA */
+        .subcategoria-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .subcategoria-filter button {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-light);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-weight: 400;
+            font-size: 13px;
+        }
+
+        .subcategoria-filter button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .subcategoria-filter button.active {
+            background: rgba(50, 195, 187, 0.2);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* FILTROS EM SEÇÃO */
         .filter-section {
             background: rgba(94, 82, 64, 0.12);
             padding: 20px;
@@ -648,6 +679,12 @@
             <div class="filter-section">
                 <h3>🏷️ Filtrar por Categoria</h3>
                 <div id="categoriasFilter"></div>
+            </div>
+
+            <!-- FILTROS DE SUBCATEGORIA -->
+            <div class="filter-section" id="subcategoriasFilterSection" style="display: none;">
+                <h3>📂 Filtrar por Subcategoria</h3>
+                <div id="subcategoriasFilter"></div>
             </div>
 
             <div id="equipamentosList"></div>
@@ -818,6 +855,31 @@
         </div>
     </div>
 
+    <!-- MODAL: SELECIONAR EQUIPAMENTO PARA LOCAR -->
+    <div id="modalSelecionarEquipamento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Selecionar Equipamento</h2>
+                <button class="close-btn" onclick="closeModal('modalSelecionarEquipamento')">&times;</button>
+            </div>
+
+            <!-- FILTROS DE CATEGORIA -->
+            <div style="margin-bottom: 20px;">
+                <h3>🏷️ Filtrar por Categoria</h3>
+                <div id="categoriasFilterLocar" class="categoria-filter"></div>
+            </div>
+
+            <!-- FILTROS DE SUBCATEGORIA -->
+            <div id="subcategoriasFilterLocarSection" style="margin-bottom: 20px; display: none;">
+                <h3>📂 Filtrar por Subcategoria</h3>
+                <div id="subcategoriasFilterLocar" class="subcategoria-filter"></div>
+            </div>
+
+            <div id="equipamentosLocarGrid"></div>
+            <input type="hidden" id="clienteIdParaLocar">
+        </div>
+    </div>
+
     <!-- MODAL: ADICIONAR CONTRATO -->
     <div id="modalAdicionarContrato" class="modal">
         <div class="modal-content">
@@ -908,6 +970,8 @@
         let contratosMap = {};
         let categoriaAtiva = null;
         let subcategoriaAtiva = null;
+        let categoriativaLocar = null;
+        let subcategoriaAtivaLocar = null;
 
         // ESTRUTURA DE CATEGORIAS
         const CATEGORIAS = {
@@ -1088,7 +1152,6 @@
                         selectSubcategoria.appendChild(option);
                     });
                 } else {
-                    // Se não tiver subcategorias, usar a categoria como valor
                     const option = document.createElement('option');
                     option.value = categoriaSelecionada;
                     option.textContent = categoriaSelecionada;
@@ -1113,7 +1176,7 @@
             const container = document.getElementById('categoriasFilter');
             let html = '<div class="categoria-filter">';
             
-            html += '<button class="categoria-btn" onclick="filtrarPorCategoria(null)" style="border-color: var(--primary); background: var(--primary); color: white;">Todas</button>';
+            html += '<button class="categoria-btn" onclick="filtrarPorCategoria(null)" id="btnTodas">Todas</button>';
 
             Object.keys(CATEGORIAS).forEach(cat => {
                 html += `<button class="categoria-btn" onclick="filtrarPorCategoria('${cat}')">${cat}</button>`;
@@ -1122,8 +1185,41 @@
             html += '</div>';
             container.innerHTML = html;
 
-            // Marcar a primeira como ativa
-            const firstBtn = container.querySelector('.categoria-btn');
+            // Marcar "Todas" como ativa inicialmente
+            const btnTodas = document.getElementById('btnTodas');
+            if (btnTodas) btnTodas.classList.add('active');
+        }
+
+        function renderSubcategoriasFiltro() {
+            const container = document.getElementById('subcategoriasFilter');
+            const sectionContainer = document.getElementById('subcategoriasFilterSection');
+
+            if (!categoriaAtiva || categoriaAtiva === null) {
+                sectionContainer.style.display = 'none';
+                subcategoriaAtiva = null;
+                return;
+            }
+
+            sectionContainer.style.display = 'block';
+            const subcategorias = CATEGORIAS[categoriaAtiva];
+
+            if (typeof subcategorias !== 'object' || subcategorias === null || Object.keys(subcategorias).length === 0) {
+                sectionContainer.style.display = 'none';
+                return;
+            }
+
+            let html = '<div class="subcategoria-filter">';
+            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoria(null)">Todas</button>';
+
+            Object.keys(subcategorias).forEach(sub => {
+                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoria('${sub}')">${sub}</button>`;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Marcar primeira como ativa
+            const firstBtn = container.querySelector('.subcategoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
         }
 
@@ -1131,11 +1227,113 @@
             categoriaAtiva = categoria;
             subcategoriaAtiva = null;
 
-            // Atualizar botões ativos
+            // Remover active de todos
             document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
-            if (event) event.target.classList.add('active');
+            
+            // Adicionar active ao clicado (usar event.target)
+            if (event && event.target) {
+                event.target.classList.add('active');
+            } else if (categoria === null) {
+                // Se categoria é null, marcar "Todas"
+                document.getElementById('btnTodas').classList.add('active');
+            }
+
+            renderSubcategoriasFiltro();
+            renderEquipamentos();
+        }
+
+        function filtrarPorSubcategoria(subcategoria) {
+            subcategoriaAtiva = subcategoria;
+
+            // Remover active de todos
+            document.querySelectorAll('.subcategoria-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Adicionar active ao clicado
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
 
             renderEquipamentos();
+        }
+
+        // FILTROS DO MODAL DE LOCAR
+        function renderFiltrosCategoriaLocar() {
+            const container = document.getElementById('categoriasFilterLocar');
+            let html = '';
+            
+            html += '<button class="categoria-btn" onclick="filtrarPorCategoriaLocar(null)">Todas</button>';
+
+            Object.keys(CATEGORIAS).forEach(cat => {
+                html += `<button class="categoria-btn" onclick="filtrarPorCategoriaLocar('${cat}')">${cat}</button>`;
+            });
+
+            container.innerHTML = html;
+
+            // Marcar primeira como ativa
+            const firstBtn = container.querySelector('.categoria-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+        }
+
+        function renderSubcategoriasFiltroLocar() {
+            const container = document.getElementById('subcategoriasFilterLocar');
+            const sectionContainer = document.getElementById('subcategoriasFilterLocarSection');
+
+            if (!categoriativaLocar || categoriativaLocar === null) {
+                sectionContainer.style.display = 'none';
+                subcategoriaAtivaLocar = null;
+                return;
+            }
+
+            sectionContainer.style.display = 'block';
+            const subcategorias = CATEGORIAS[categoriativaLocar];
+
+            if (typeof subcategorias !== 'object' || subcategorias === null || Object.keys(subcategorias).length === 0) {
+                sectionContainer.style.display = 'none';
+                return;
+            }
+
+            let html = '';
+            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar(null)">Todas</button>';
+
+            Object.keys(subcategorias).forEach(sub => {
+                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar('${sub}')">${sub}</button>`;
+            });
+
+            container.innerHTML = html;
+
+            // Marcar primeira como ativa
+            const firstBtn = container.querySelector('.subcategoria-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+        }
+
+        function filtrarPorCategoriaLocar(categoria) {
+            categoriativaLocar = categoria;
+            subcategoriaAtivaLocar = null;
+
+            // Remover active de todos
+            document.querySelectorAll('#categoriasFilterLocar .categoria-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Adicionar active ao clicado
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            renderSubcategoriasFiltroLocar();
+            renderEquipamentosLocar();
+        }
+
+        function filtrarPorSubcategoriaLocar(subcategoria) {
+            subcategoriaAtivaLocar = subcategoria;
+
+            // Remover active de todos
+            document.querySelectorAll('#subcategoriasFilterLocar .subcategoria-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Adicionar active ao clicado
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            renderEquipamentosLocar();
         }
 
         // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
@@ -1176,6 +1374,7 @@
             if (viewName === 'dashboard') updateDashboard();
             else if (viewName === 'equipamentos') {
                 renderFiltrosCategorias();
+                renderSubcategoriasFiltro();
                 renderEquipamentos();
             }
             else if (viewName === 'clientes') renderClientes();
@@ -1240,8 +1439,13 @@
             const container = document.getElementById('equipamentosList');
             
             let produtosFiltrados = produtos;
+            
             if (categoriaAtiva) {
-                produtosFiltrados = produtos.filter(p => p.categoria === categoriaAtiva);
+                produtosFiltrados = produtosFiltrados.filter(p => p.categoria === categoriaAtiva);
+            }
+
+            if (subcategoriaAtiva) {
+                produtosFiltrados = produtosFiltrados.filter(p => p.subcategoria === subcategoriaAtiva);
             }
 
             if (produtosFiltrados.length === 0) {
@@ -1270,6 +1474,42 @@
             html += '</div>';
             container.innerHTML = html;
             document.getElementById('produtoDetalhes').innerHTML = '';
+        }
+
+        function renderEquipamentosLocar() {
+            const container = document.getElementById('equipamentosLocarGrid');
+            
+            let produtosFiltrados = produtos.filter(p => p.disponivel);
+            
+            if (categoriativaLocar) {
+                produtosFiltrados = produtosFiltrados.filter(p => p.categoria === categoriativaLocar);
+            }
+
+            if (subcategoriaAtivaLocar) {
+                produtosFiltrados = produtosFiltrados.filter(p => p.subcategoria === subcategoriaAtivaLocar);
+            }
+
+            if (produtosFiltrados.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum equipamento disponível nesta categoria</div>';
+                return;
+            }
+
+            let html = '<div class="equipamentos-grid">';
+            
+            produtosFiltrados.forEach(p => {
+                html += `
+                    <div class="product-card" onclick="abrirLocar('${p.id}', document.getElementById('clienteIdParaLocar').value)" style="cursor: pointer;">
+                        ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
+                        <h3>${p.nome}</h3>
+                        <div class="product-serie">📌 ${p.serie}</div>
+                        <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
+                        ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
         }
 
         function verDetalheProduto(produtoId) {
@@ -1333,6 +1573,8 @@
 
         function voltarEquipamentos() {
             document.getElementById('produtoDetalhes').innerHTML = '';
+            renderFiltrosCategorias();
+            renderSubcategoriasFiltro();
             renderEquipamentos();
         }
 
@@ -1450,7 +1692,7 @@
                     </div>
 
                     <div class="actions">
-                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente('${cliente.id}')">➕ Locar Equipamento</button>
+                        <button class="btn btn-primary" onclick="abrirSelecionarEquipamento('${cliente.id}')">➕ Locar Equipamento</button>
                         <button class="btn btn-danger" onclick="deletarCliente('${cliente.id}')">🗑️ Deletar Cliente</button>
                     </div>
                 </div>
@@ -1472,42 +1714,28 @@
             voltarClientes();
         }
 
-        // ========== LOCAÇÕES ==========
-        function abrirLocarProdutoCliente(clienteId) {
-            const cliente = clientes.find(c => c.id === clienteId);
-            if (!cliente) return;
+        // ========== SELEÇÃO DE EQUIPAMENTO ==========
+        function abrirSelecionarEquipamento(clienteId) {
+            document.getElementById('clienteIdParaLocar').value = clienteId;
+            
+            categoriativaLocar = null;
+            subcategoriaAtivaLocar = null;
 
-            const produtosDisponiveis = produtos.filter(p => p.disponivel);
-            if (produtosDisponiveis.length === 0) {
-                showNotification('Nenhum equipamento disponível!', 'error');
-                return;
-            }
+            renderFiltrosCategoriaLocar();
+            renderSubcategoriasFiltroLocar();
+            renderEquipamentosLocar();
 
-            const html = `
-                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente('${cliente.id}')">← Voltar</button>
-                <div style="margin-bottom: 20px;">
-                    <h3>Selecione um Equipamento</h3>
-                    <div class="equipamentos-grid" style="margin-top: 15px;">
-                        ${produtosDisponiveis.map(p => `
-                            <div class="product-card" onclick="abrirLocar('${p.id}', '${clienteId}')">
-                                ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
-                                <h3>${p.nome}</h3>
-                                <div class="product-serie">📌 ${p.serie}</div>
-                                <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
-            document.getElementById('clienteDetalhes').innerHTML = html;
+            openModal('modalSelecionarEquipamento');
         }
 
+        // ========== LOCAÇÕES ==========
         function abrirLocar(produtoId, clienteId) {
             const produto = produtos.find(p => p.id === produtoId);
             const cliente = clientes.find(c => c.id === clienteId);
 
             if (!produto || !cliente) return;
+
+            closeModal('modalSelecionarEquipamento');
 
             document.getElementById('produtoIdLocar').value = produtoId;
             document.getElementById('clienteIdLocar').value = clienteId;
