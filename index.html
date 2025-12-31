@@ -544,7 +544,7 @@
             border-color: var(--primary);
         }
 
-        /* FILTROS DE SUBCATEGORIA COM PLACA DE VÍDEO */
+        /* FILTROS DE SUBCATEGORIA */
         .subcategoria-filter {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -591,6 +591,37 @@
 
         .subcategoria-btn.active .subcategoria-btn-specs {
             color: var(--primary);
+        }
+
+        /* FILTROS DE PLACA DE VÍDEO */
+        .placa-video-filter {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .placa-video-btn {
+            padding: 12px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .placa-video-btn:hover {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .placa-video-btn.active {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border-color: var(--warning);
         }
 
         /* FILTROS EM SEÇÃO */
@@ -755,6 +786,12 @@
             <div class="filter-section" id="subcategoriasFilterSection" style="display: none;">
                 <h3>📂 Filtrar por Subcategoria</h3>
                 <div id="subcategoriasFilter"></div>
+            </div>
+
+            <!-- FILTROS DE PLACA DE VÍDEO (NOTEBOOKS APENAS) -->
+            <div class="filter-section" id="placaVideoFilterSection" style="display: none;">
+                <h3>🎮 Filtrar por Placa de Vídeo</h3>
+                <div id="placaVideoFilter" class="placa-video-filter"></div>
             </div>
 
             <div id="equipamentosList"></div>
@@ -954,6 +991,12 @@
                 <div id="subcategoriasFilterLocar" class="subcategoria-filter"></div>
             </div>
 
+            <!-- FILTROS DE PLACA DE VÍDEO (NOTEBOOKS APENAS) -->
+            <div id="placaVideoFilterLocarSection" style="margin-bottom: 20px; display: none;">
+                <h3>🎮 Filtrar por Placa de Vídeo</h3>
+                <div id="placaVideoFilterLocar" class="placa-video-filter"></div>
+            </div>
+
             <div id="equipamentosLocarGrid"></div>
             <input type="hidden" id="clienteIdParaLocar">
         </div>
@@ -1049,8 +1092,11 @@
         let contratosMap = {};
         let categoriaAtiva = null;
         let subcategoriaAtiva = null;
+        let filtroPlacaVideo = null; // null = todos, true = com placa, false = sem placa
+        
         let categoriativaLocar = null;
         let subcategoriaAtivaLocar = null;
+        let filtroPlacaVideoLocar = null;
 
         // ESTRUTURA DE CATEGORIAS
         const CATEGORIAS = {
@@ -1284,6 +1330,7 @@
             if (!categoriaAtiva || categoriaAtiva === null) {
                 sectionContainer.style.display = 'none';
                 subcategoriaAtiva = null;
+                renderPlacaVideoFiltro(); // Atualiza filtro de placa de vídeo
                 return;
             }
 
@@ -1292,6 +1339,7 @@
 
             if (typeof subcategorias !== 'object' || subcategorias === null || Object.keys(subcategorias).length === 0) {
                 sectionContainer.style.display = 'none';
+                renderPlacaVideoFiltro();
                 return;
             }
 
@@ -1311,11 +1359,37 @@
 
             const firstBtn = container.querySelector('.subcategoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
+
+            renderPlacaVideoFiltro();
+        }
+
+        function renderPlacaVideoFiltro() {
+            const container = document.getElementById('placaVideoFilter');
+            const sectionContainer = document.getElementById('placaVideoFilterSection');
+
+            if (categoriaAtiva !== 'Notebooks') {
+                sectionContainer.style.display = 'none';
+                filtroPlacaVideo = null;
+                return;
+            }
+
+            sectionContainer.style.display = 'block';
+
+            let html = '';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideo(null)">Todos os Notebooks</button>';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideo(true)">🎮 Com Placa Dedicada</button>';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideo(false)">🔌 Sem Placa Dedicada</button>';
+
+            container.innerHTML = html;
+
+            const firstBtn = container.querySelector('.placa-video-btn');
+            if (firstBtn) firstBtn.classList.add('active');
         }
 
         function filtrarPorCategoria(categoria) {
             categoriaAtiva = categoria;
             subcategoriaAtiva = null;
+            filtroPlacaVideo = null;
 
             document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1331,8 +1405,22 @@
 
         function filtrarPorSubcategoria(subcategoria) {
             subcategoriaAtiva = subcategoria;
+            filtroPlacaVideo = null;
 
             document.querySelectorAll('.subcategoria-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            renderPlacaVideoFiltro();
+            renderEquipamentos();
+        }
+
+        function filtrarPorPlacaVideo(temPlaca) {
+            filtroPlacaVideo = temPlaca;
+
+            document.querySelectorAll('.placa-video-btn').forEach(btn => btn.classList.remove('active'));
             
             if (event && event.target) {
                 event.target.classList.add('active');
@@ -1365,6 +1453,7 @@
             if (!categoriativaLocar || categoriativaLocar === null) {
                 sectionContainer.style.display = 'none';
                 subcategoriaAtivaLocar = null;
+                renderPlacaVideoFiltroLocar();
                 return;
             }
 
@@ -1373,6 +1462,7 @@
 
             if (typeof subcategorias !== 'object' || subcategorias === null || Object.keys(subcategorias).length === 0) {
                 sectionContainer.style.display = 'none';
+                renderPlacaVideoFiltroLocar();
                 return;
             }
 
@@ -1391,11 +1481,37 @@
 
             const firstBtn = container.querySelector('.subcategoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
+
+            renderPlacaVideoFiltroLocar();
+        }
+
+        function renderPlacaVideoFiltroLocar() {
+            const container = document.getElementById('placaVideoFilterLocar');
+            const sectionContainer = document.getElementById('placaVideoFilterLocarSection');
+
+            if (categoriativaLocar !== 'Notebooks') {
+                sectionContainer.style.display = 'none';
+                filtroPlacaVideoLocar = null;
+                return;
+            }
+
+            sectionContainer.style.display = 'block';
+
+            let html = '';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideoLocar(null)">Todos os Notebooks</button>';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideoLocar(true)">🎮 Com Placa Dedicada</button>';
+            html += '<button class="placa-video-btn" onclick="filtrarPorPlacaVideoLocar(false)">🔌 Sem Placa Dedicada</button>';
+
+            container.innerHTML = html;
+
+            const firstBtn = container.querySelector('.placa-video-btn');
+            if (firstBtn) firstBtn.classList.add('active');
         }
 
         function filtrarPorCategoriaLocar(categoria) {
             categoriativaLocar = categoria;
             subcategoriaAtivaLocar = null;
+            filtroPlacaVideoLocar = null;
 
             document.querySelectorAll('#categoriasFilterLocar .categoria-btn').forEach(btn => btn.classList.remove('active'));
             
@@ -1409,8 +1525,22 @@
 
         function filtrarPorSubcategoriaLocar(subcategoria) {
             subcategoriaAtivaLocar = subcategoria;
+            filtroPlacaVideoLocar = null;
 
             document.querySelectorAll('#subcategoriasFilterLocar .subcategoria-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            renderPlacaVideoFiltroLocar();
+            renderEquipamentosLocar();
+        }
+
+        function filtrarPorPlacaVideoLocar(temPlaca) {
+            filtroPlacaVideoLocar = temPlaca;
+
+            document.querySelectorAll('#placaVideoFilterLocar .placa-video-btn').forEach(btn => btn.classList.remove('active'));
             
             if (event && event.target) {
                 event.target.classList.add('active');
@@ -1534,6 +1664,10 @@
                 produtosFiltrados = produtosFiltrados.filter(p => p.subcategoria === subcategoriaAtiva);
             }
 
+            if (filtroPlacaVideo !== null) {
+                produtosFiltrados = produtosFiltrados.filter(p => p.temPlacaVideo === filtroPlacaVideo);
+            }
+
             if (produtosFiltrados.length === 0) {
                 container.innerHTML = '<div class="empty-state">Nenhum equipamento nesta categoria</div>';
                 return;
@@ -1579,6 +1713,10 @@
 
             if (subcategoriaAtivaLocar) {
                 produtosFiltrados = produtosFiltrados.filter(p => p.subcategoria === subcategoriaAtivaLocar);
+            }
+
+            if (filtroPlacaVideoLocar !== null) {
+                produtosFiltrados = produtosFiltrados.filter(p => p.temPlacaVideo === filtroPlacaVideoLocar);
             }
 
             if (produtosFiltrados.length === 0) {
@@ -1829,6 +1967,7 @@
             
             categoriativaLocar = null;
             subcategoriaAtivaLocar = null;
+            filtroPlacaVideoLocar = null;
 
             renderFiltrosCategoriaLocar();
             renderSubcategoriasFiltroLocar();
