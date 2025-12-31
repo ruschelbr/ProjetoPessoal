@@ -241,8 +241,21 @@
             font-size: 14px;
         }
 
-        tr:hover {
+        tr {
+            transition: all 0.25s;
+        }
+
+        tbody tr:hover {
             background: rgba(94, 82, 64, 0.12);
+        }
+
+        tbody tr.clickable {
+            cursor: pointer;
+        }
+
+        tbody tr.clickable:hover {
+            background: rgba(50, 195, 187, 0.15);
+            box-shadow: inset 0 0 0 1px rgba(50, 195, 187, 0.3);
         }
 
         .badge {
@@ -367,6 +380,22 @@
             min-height: 100px;
         }
 
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+        }
+
         .form-actions {
             display: flex;
             gap: 10px;
@@ -456,6 +485,22 @@
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+        }
+
+        .product-specs {
+            font-size: 11px;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .product-specs span {
+            background: rgba(50, 195, 187, 0.15);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(50, 195, 187, 0.25);
         }
 
         .back-btn {
@@ -666,6 +711,9 @@
                 <h3>📋 Locações Ativas</h3>
                 <div id="locacoesAtivas"></div>
             </div>
+
+            <!-- MODAL: DETALHES DA LOCAÇÃO -->
+            <div id="locacaoDetalhes"></div>
         </div>
 
         <!-- EQUIPAMENTOS -->
@@ -732,6 +780,15 @@
                     <select id="subcategoriaProduto" required>
                         <option value="">Selecione a subcategoria...</option>
                     </select>
+                </div>
+
+                <!-- CHECKBOX DE PLACA DE VÍDEO DEDICADA - APENAS PARA NOTEBOOKS -->
+                <div id="placaVideoGroup" class="form-group" style="display: none;">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="temPlacaVideo" name="temPlacaVideo">
+                        <label for="temPlacaVideo" style="margin-bottom: 0;">✅ Possui Placa de Vídeo Dedicada</label>
+                    </div>
+                    <small style="color: var(--text-light); display: block; margin-top: 6px;">Marque se o notebook possui placa de vídeo dedicada (diferente da integrada)</small>
                 </div>
 
                 <div class="form-group">
@@ -1139,7 +1196,16 @@
         function atualizarSubcategorias() {
             const categoriaSelecionada = document.getElementById('categoriaProduto').value;
             const selectSubcategoria = document.getElementById('subcategoriaProduto');
+            const placaVideoGroup = document.getElementById('placaVideoGroup');
             selectSubcategoria.innerHTML = '<option value="">Selecione a subcategoria...</option>';
+
+            // Mostrar checkbox de placa de vídeo apenas para Notebooks
+            if (categoriaSelecionada === 'Notebooks') {
+                placaVideoGroup.style.display = 'block';
+            } else {
+                placaVideoGroup.style.display = 'none';
+                document.getElementById('temPlacaVideo').checked = false;
+            }
 
             if (categoriaSelecionada && CATEGORIAS[categoriaSelecionada]) {
                 const subcategorias = CATEGORIAS[categoriaSelecionada];
@@ -1185,7 +1251,6 @@
             html += '</div>';
             container.innerHTML = html;
 
-            // Marcar "Todas" como ativa inicialmente
             const btnTodas = document.getElementById('btnTodas');
             if (btnTodas) btnTodas.classList.add('active');
         }
@@ -1218,7 +1283,6 @@
             html += '</div>';
             container.innerHTML = html;
 
-            // Marcar primeira como ativa
             const firstBtn = container.querySelector('.subcategoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
         }
@@ -1227,14 +1291,11 @@
             categoriaAtiva = categoria;
             subcategoriaAtiva = null;
 
-            // Remover active de todos
             document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Adicionar active ao clicado (usar event.target)
             if (event && event.target) {
                 event.target.classList.add('active');
             } else if (categoria === null) {
-                // Se categoria é null, marcar "Todas"
                 document.getElementById('btnTodas').classList.add('active');
             }
 
@@ -1245,10 +1306,8 @@
         function filtrarPorSubcategoria(subcategoria) {
             subcategoriaAtiva = subcategoria;
 
-            // Remover active de todos
             document.querySelectorAll('.subcategoria-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Adicionar active ao clicado
             if (event && event.target) {
                 event.target.classList.add('active');
             }
@@ -1269,7 +1328,6 @@
 
             container.innerHTML = html;
 
-            // Marcar primeira como ativa
             const firstBtn = container.querySelector('.categoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
         }
@@ -1301,7 +1359,6 @@
 
             container.innerHTML = html;
 
-            // Marcar primeira como ativa
             const firstBtn = container.querySelector('.subcategoria-btn');
             if (firstBtn) firstBtn.classList.add('active');
         }
@@ -1310,10 +1367,8 @@
             categoriativaLocar = categoria;
             subcategoriaAtivaLocar = null;
 
-            // Remover active de todos
             document.querySelectorAll('#categoriasFilterLocar .categoria-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Adicionar active ao clicado
             if (event && event.target) {
                 event.target.classList.add('active');
             }
@@ -1325,10 +1380,8 @@
         function filtrarPorSubcategoriaLocar(subcategoria) {
             subcategoriaAtivaLocar = subcategoria;
 
-            // Remover active de todos
             document.querySelectorAll('#subcategoriasFilterLocar .subcategoria-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Adicionar active ao clicado
             if (event && event.target) {
                 event.target.classList.add('active');
             }
@@ -1408,6 +1461,7 @@
         // ========== PRODUTOS ==========
         function openAddProductModal() {
             document.getElementById('formProduct').reset();
+            document.getElementById('placaVideoGroup').style.display = 'none';
             preencherCategorias();
             openModal('modalAddProduct');
         }
@@ -1417,6 +1471,7 @@
             
             const categoria = document.getElementById('categoriaProduto').value;
             const subcategoria = document.getElementById('subcategoriaProduto').value;
+            const temPlacaVideo = document.getElementById('temPlacaVideo').checked;
 
             const produto = {
                 id: Date.now().toString(),
@@ -1426,6 +1481,7 @@
                 valorDiario: parseFloat(document.getElementById('valorDiarioProduto').value),
                 categoria: categoria,
                 subcategoria: subcategoria,
+                temPlacaVideo: categoria === 'Notebooks' ? temPlacaVideo : null,
                 disponivel: true,
                 locacaoId: null
             };
@@ -1459,10 +1515,16 @@
                 const status = p.disponivel ? 'badge-available' : 'badge-occupied';
                 const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
                 
+                let specs = '';
+                if (p.categoria === 'Notebooks' && p.temPlacaVideo) {
+                    specs = '<div class="product-specs"><span>🎮 Placa de Vídeo Dedicada</span></div>';
+                }
+                
                 html += `
                     <div class="product-card" onclick="verDetalheProduto('${p.id}')">
                         <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
                         ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
+                        ${specs}
                         <h3>${p.nome}</h3>
                         <div class="product-serie">📌 ${p.serie}</div>
                         <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
@@ -1497,9 +1559,15 @@
             let html = '<div class="equipamentos-grid">';
             
             produtosFiltrados.forEach(p => {
+                let specs = '';
+                if (p.categoria === 'Notebooks' && p.temPlacaVideo) {
+                    specs = '<div class="product-specs"><span>🎮 Placa de Vídeo Dedicada</span></div>';
+                }
+                
                 html += `
                     <div class="product-card" onclick="abrirLocar('${p.id}', document.getElementById('clienteIdParaLocar').value)" style="cursor: pointer;">
                         ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
+                        ${specs}
                         <h3>${p.nome}</h3>
                         <div class="product-serie">📌 ${p.serie}</div>
                         <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
@@ -1528,6 +1596,16 @@
                 `;
             }
 
+            let specsDetail = '';
+            if (produto.categoria === 'Notebooks') {
+                specsDetail = `
+                    <div class="detail-item">
+                        <strong>Placa de Vídeo Dedicada</strong>
+                        <span>${produto.temPlacaVideo ? '✅ Sim' : '❌ Não (Integrada)'}</span>
+                    </div>
+                `;
+            }
+
             const html = `
                 <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">← Voltar</button>
                 <div class="produto-detalhes">
@@ -1551,6 +1629,7 @@
                                 </span>
                             </span>
                         </div>
+                        ${specsDetail}
                         ${produto.descricao ? `
                             <div class="detail-item">
                                 <strong>Descrição</strong>
@@ -1742,7 +1821,7 @@
             document.getElementById('dataLocacao').valueAsDate = new Date();
             document.getElementById('dataDevolucao').valueAsDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-            document.getElementById('produtoLocarInfo').innerHTML = `
+            let produtoInfo = `
                 <div class="detail-item">
                     <strong>Produto</strong>
                     <span>${produto.nome}</span>
@@ -1753,6 +1832,18 @@
                         <span>${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</span>
                     </div>
                 ` : ''}
+            `;
+
+            if (produto.categoria === 'Notebooks') {
+                produtoInfo += `
+                    <div class="detail-item">
+                        <strong>Placa de Vídeo Dedicada</strong>
+                        <span>${produto.temPlacaVideo ? '✅ Sim' : '❌ Não (Integrada)'}</span>
+                    </div>
+                `;
+            }
+
+            produtoInfo += `
                 <div class="detail-item">
                     <strong>Série</strong>
                     <span>${produto.serie}</span>
@@ -1762,6 +1853,8 @@
                     <span>R$ ${produto.valorDiario.toFixed(2)}</span>
                 </div>
             `;
+
+            document.getElementById('produtoLocarInfo').innerHTML = produtoInfo;
 
             document.getElementById('clienteLocarInfo').innerHTML = `
                 <div class="detail-item">
@@ -1946,19 +2039,147 @@
                         ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
                         : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">➕ Adicionar</button>`;
 
-                    html += `<tr>
+                    html += `<tr class="clickable" onclick="abrirDetalhesLocacao('${loc.id}')">
                         <td><strong>${produto.nome}</strong></td>
                         <td>${cliente.nome}</td>
                         <td>${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')} <span class="badge ${badge}">${dias}d</span></td>
                         <td>R$ ${loc.valorTotal.toFixed(2)}</td>
-                        <td>${botaoContrato}</td>
-                        <td><button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')">Devolver</button></td>
+                        <td><div onclick="event.stopPropagation(); ${temContrato ? `downloadContrato('${loc.id}')` : `abrirAdicionarContrato('${loc.id}')`}">${botaoContrato}</div></td>
+                        <td><div onclick="event.stopPropagation();"><button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')">Devolver</button></div></td>
                     </tr>`;
                 });
 
                 html += '</tbody></table>';
                 container.innerHTML = html;
             }
+
+            document.getElementById('locacaoDetalhes').innerHTML = '';
+        }
+
+        function abrirDetalhesLocacao(locacaoId) {
+            const locacao = locacoes.find(l => l.id === locacaoId);
+            if (!locacao) return;
+
+            const produto = produtos.find(p => p.id === locacao.produtoId);
+            const cliente = clientes.find(c => c.id === locacao.clienteId);
+
+            const dias = Math.ceil((new Date(locacao.dataDevolucao) - new Date()) / (1000 * 60 * 60 * 24));
+            let multa = 0;
+            if (dias < 0) {
+                multa = Math.abs(dias) * (produto.valorDiario * 0.5);
+            }
+
+            let produtoSpecs = '';
+            if (produto.categoria === 'Notebooks') {
+                produtoSpecs = `
+                    <div class="detail-item">
+                        <strong>Placa de Vídeo Dedicada</strong>
+                        <span>${produto.temPlacaVideo ? '✅ Sim' : '❌ Não (Integrada)'}</span>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <button class="btn btn-secondary back-btn" onclick="voltarDashboard()">← Voltar</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="detail-section">
+                        <h3>📦 Informações do Equipamento</h3>
+                        <div class="detail-item">
+                            <strong>Nome</strong>
+                            <span>${produto.nome}</span>
+                        </div>
+                        ${produto.categoria ? `
+                            <div class="detail-item">
+                                <strong>Categoria</strong>
+                                <span>${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</span>
+                            </div>
+                        ` : ''}
+                        <div class="detail-item">
+                            <strong>Série</strong>
+                            <span>${produto.serie}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Valor Diário</strong>
+                            <span>R$ ${produto.valorDiario.toFixed(2)}</span>
+                        </div>
+                        ${produto.descricao ? `
+                            <div class="detail-item">
+                                <strong>Descrição</strong>
+                                <span>${produto.descricao}</span>
+                            </div>
+                        ` : ''}
+                        ${produtoSpecs}
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>👤 Informações do Cliente</h3>
+                        <div class="detail-item">
+                            <strong>Nome</strong>
+                            <span>${cliente.nome}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Email</strong>
+                            <span>${cliente.email}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Telefone</strong>
+                            <span>${cliente.telefone}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Endereço</strong>
+                            <span>${cliente.endereco}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📅 Datas e Valores</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="detail-item">
+                            <strong>Data Locação</strong>
+                            <span>${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Data Devolução</strong>
+                            <span>${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Dias Restantes</strong>
+                            <span style="color: ${dias < 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: bold;">${dias}d</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>💰 Valores</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                        <div class="detail-item">
+                            <strong>Valor Total</strong>
+                            <span style="color: var(--primary); font-weight: bold; font-size: 16px;">R$ ${locacao.valorTotal.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Multa Estimada</strong>
+                            <span style="color: var(--danger); font-weight: bold; font-size: 16px;">R$ ${multa.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Total Estimado</strong>
+                            <span style="color: var(--primary); font-weight: bold; font-size: 16px;">R$ ${(locacao.valorTotal + multa).toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-success" onclick="abrirDevolverProduto('${locacao.id}')">✓ Devolver Equipamento</button>
+                </div>
+            `;
+
+            document.getElementById('locacaoDetalhes').innerHTML = html;
+            document.getElementById('locacoesAtivas').innerHTML = '';
+        }
+
+        function voltarDashboard() {
+            document.getElementById('locacaoDetalhes').innerHTML = '';
+            updateDashboard();
         }
 
         // ========== HISTÓRICO ==========
