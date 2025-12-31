@@ -607,8 +607,31 @@
             </div>
             <form id="formProduct">
                 <div class="form-group">
+                    <label for="categoriaProduto">Categoria Principal *</label>
+                    <select id="categoriaProduto" required onchange="atualizarSubcategorias()">
+                        <option value="">Selecione a categoria...</option>
+                        <option value="Notebooks">Notebooks</option>
+                        <option value="Tablets">Tablets</option>
+                        <option value="Impressoras">Impressoras</option>
+                        <option value="Monitores">Monitores</option>
+                        <option value="TVs">TVs</option>
+                        <option value="Celulares">Celulares</option>
+                        <option value="Projetores">Projetores</option>
+                        <option value="Telas de Projeção">Telas de Projeção</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subcategoriaProduto">Subcategoria *</label>
+                    <select id="subcategoriaProduto" required>
+                        <option value="">Selecione a subcategoria...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="nomeProduto">Nome do Produto *</label>
-                    <input type="text" id="nomeProduto" required>
+                    <input type="text" id="nomeProduto" placeholder="Ex: Notebook Lenovo ideapad i3 8 ram ssd 128Gb" required>
                 </div>
                 <div class="form-group">
                     <label for="serieProduto">Número de Série *</label>
@@ -619,8 +642,8 @@
                     <input type="number" id="valorDiarioProduto" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="descricaoProduto">Descrição</label>
-                    <textarea id="descricaoProduto"></textarea>
+                    <label for="descricaoProduto">Descrição / Configuração</label>
+                    <textarea id="descricaoProduto" placeholder="Ex: 8GB RAM, SSD 128GB, Intel Core i3..."></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">✓ Adicionar</button>
@@ -802,6 +825,23 @@
     <!-- Firebase SDK - Versão Compatível -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+
+    <!-- Regras de Segurança do Firebase Storage (copie para o Firebase Console) -->
+    <script>
+        const STORAGE_RULES = `
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /contratos/{locacaoId}/{allPaths=**} {
+      allow read, write;
+    }
+  }
+}
+        `;
+        console.log('📋 Copie as regras do Storage do console do navegador para o Firebase Console:');
+        console.log(STORAGE_RULES);
+    </script>
 
     <script>
         // ========== VARIÁVEIS GLOBAIS ==========
@@ -827,6 +867,7 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const storage = firebase.storage();
 
         // ========== FUNÇÕES DE SINCRONIZAÇÃO FIREBASE ==========
         function loadDadosFromFirebase() {
@@ -907,29 +948,33 @@
         }
 
         function salvarContratoFirebase(locacaoId, arquivo) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            // Usar Firebase Storage para armazenar o arquivo
+            const storageRef = storage.ref('contratos/' + locacaoId + '/' + arquivo.name);
+            
+            storageRef.put(arquivo).then((snapshot) => {
+                console.log('✓ Arquivo enviado com sucesso');
+                
+                // Salvar referência no Realtime Database
                 const contratoData = {
                     nome: arquivo.name,
                     tamanho: arquivo.size,
                     tipo: arquivo.type,
-                    data: e.target.result
+                    caminhoStorage: 'contratos/' + locacaoId + '/' + arquivo.name,
+                    dataUpload: new Date().toISOString()
                 };
+                
                 db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
-                    console.log('✓ Contrato salvo com sucesso');
+                    console.log('✓ Referência do contrato salva no banco de dados');
                     showNotification('✓ Contrato anexado com sucesso!');
-                    // Atualizar mapa local
                     contratosMap[locacaoId] = contratoData;
                 }).catch(err => {
-                    console.error('Erro ao salvar contrato:', err.message);
-                    showNotification('❌ Erro ao salvar contrato: ' + err.message, 'error');
+                    console.error('Erro ao salvar referência:', err.message);
+                    showNotification('❌ Erro ao salvar referência: ' + err.message, 'error');
                 });
-            };
-            reader.onerror = function(err) {
-                console.error('Erro ao ler arquivo:', err.message);
-                showNotification('❌ Erro ao ler arquivo!', 'error');
-            };
-            reader.readAsDataURL(arquivo);
+            }).catch(err => {
+                console.error('Erro ao enviar arquivo:', err.message);
+                showNotification('❌ Erro ao enviar arquivo: ' + err.message, 'error');
+            });
         }
 
         function carregarContratos() {
@@ -1008,9 +1053,39 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
+        // ========== CATEGORIAS E SUBCATEGORIAS ==========
+        const categoriasSubcategorias = {
+            'Notebooks': ['I3', 'I5', 'I7', 'Ryzen', 'MacBook'],
+            'Tablets': ['Samsung Tab A', 'Samsung S6', 'Samsung S10', 'Outros Tablets'],
+            'Impressoras': ['Multifuncional Color Canon', 'Multifuncional Laser', 'Outras'],
+            'Monitores': ['19 polegadas', '20 polegadas', '21 polegadas', '22 polegadas', 'Acima de 24'],
+            'TVs': ['43 polegadas', '55 polegadas', '65 polegadas', 'Outras'],
+            'Celulares': ['iPhone 15 Pro Max', 'iPhone 15 Pro', 'Samsung Galaxy', 'Outros'],
+            'Projetores': ['Epson', 'Outros Projetores'],
+            'Telas de Projeção': ['Padrão', 'Premium', 'Outras'],
+            'Outros': ['Diversos']
+        };
+
+        function atualizarSubcategorias() {
+            const categoria = document.getElementById('categoriaProduto').value;
+            const subcategoriaSelect = document.getElementById('subcategoriaProduto');
+            subcategoriaSelect.innerHTML = '<option value="">Selecione a subcategoria...</option>';
+
+            if (categoria && categoriasSubcategorias[categoria]) {
+                categoriasSubcategorias[categoria].forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub;
+                    option.textContent = sub;
+                    subcategoriaSelect.appendChild(option);
+                });
+            }
+        }
+
         // ========== PRODUTOS ==========
         function openAddProductModal() {
             document.getElementById('formProduct').reset();
+            document.getElementById('categoriaProduto').value = '';
+            document.getElementById('subcategoriaProduto').innerHTML = '<option value="">Selecione a subcategoria...</option>';
             openModal('modalAddProduct');
         }
 
@@ -1019,6 +1094,8 @@
             
             const produto = {
                 id: Date.now().toString(),
+                categoria: document.getElementById('categoriaProduto').value,
+                subcategoria: document.getElementById('subcategoriaProduto').value,
                 nome: document.getElementById('nomeProduto').value,
                 serie: document.getElementById('serieProduto').value,
                 descricao: document.getElementById('descricaoProduto').value,
@@ -1040,24 +1117,72 @@
                 return;
             }
 
-            let html = '<div class="equipamentos-grid">';
-            
+            // Agrupar produtos por categoria
+            const produtosPorCategoria = {};
             produtos.forEach(p => {
-                const status = p.disponivel ? 'badge-available' : 'badge-occupied';
-                const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
-                
-                html += `
-                    <div class="product-card" onclick="verDetalheProduto('${p.id}')">
-                        <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
-                        <h3>${p.nome}</h3>
-                        <div class="product-serie">📌 ${p.serie}</div>
-                        <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
-                        ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
-                    </div>
-                `;
+                const categoria = p.categoria || 'Sem Categoria';
+                if (!produtosPorCategoria[categoria]) {
+                    produtosPorCategoria[categoria] = [];
+                }
+                produtosPorCategoria[categoria].push(p);
             });
-            
-            html += '</div>';
+
+            // Renderizar por categoria
+            let html = '';
+            const categorias = Object.keys(produtosPorCategoria).sort();
+
+            categorias.forEach(categoria => {
+                const produtosDaCategoria = produtosPorCategoria[categoria];
+                
+                // Agrupar por subcategoria
+                const produtosPorSubcategoria = {};
+                produtosDaCategoria.forEach(p => {
+                    const subcategoria = p.subcategoria || 'Diversos';
+                    if (!produtosPorSubcategoria[subcategoria]) {
+                        produtosPorSubcategoria[subcategoria] = [];
+                    }
+                    produtosPorSubcategoria[subcategoria].push(p);
+                });
+
+                html += `
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px; font-size: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+                            📦 ${categoria}
+                        </h3>
+                `;
+
+                // Renderizar subcategorias
+                const subcategorias = Object.keys(produtosPorSubcategoria).sort();
+                subcategorias.forEach(subcategoria => {
+                    const produtosSubcat = produtosPorSubcategoria[subcategoria];
+                    
+                    if (subcategorias.length > 1) {
+                        html += `<h4 style="color: var(--text-light); margin: 16px 0 12px 0; font-size: 14px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">▸ ${subcategoria}</h4>`;
+                    }
+
+                    html += '<div class="equipamentos-grid" style="margin-bottom: 16px;">';
+
+                    produtosSubcat.forEach(p => {
+                        const status = p.disponivel ? 'badge-available' : 'badge-occupied';
+                        const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
+                        
+                        html += `
+                            <div class="product-card" onclick="verDetalheProduto('${p.id}')">
+                                <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
+                                <h3>${p.nome}</h3>
+                                <div class="product-serie">📌 ${p.serie}</div>
+                                <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
+                                ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            });
+
             container.innerHTML = html;
             document.getElementById('produtoDetalhes').innerHTML = '';
         }
@@ -1083,6 +1208,17 @@
                 <div class="produto-detalhes">
                     <h2>${produto.nome}</h2>
                     <div class="detail-section">
+                        <h3>📂 Categorização</h3>
+                        <div class="detail-item">
+                            <strong>Categoria</strong>
+                            <span>${produto.categoria || 'Sem Categoria'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Subcategoria</strong>
+                            <span>${produto.subcategoria || 'Diversos'}</span>
+                        </div>
+                    </div>
+                    <div class="detail-section">
                         <h3>📦 Informações</h3>
                         <div class="detail-item">
                             <strong>Série</strong>
@@ -1102,7 +1238,7 @@
                         </div>
                         ${produto.descricao ? `
                             <div class="detail-item">
-                                <strong>Descrição</strong>
+                                <strong>Configuração</strong>
                                 <span>${produto.descricao}</span>
                             </div>
                         ` : ''}
@@ -1622,11 +1758,18 @@
 
         function executarDownload(contrato) {
             try {
-                const link = document.createElement('a');
-                link.href = contrato.data;
-                link.download = contrato.nome;
-                link.click();
-                showNotification('✓ Download iniciado!');
+                // Usar Storage para gerar URL de download
+                const storageRef = storage.ref(contrato.caminhoStorage);
+                storageRef.getDownloadURL().then(url => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = contrato.nome;
+                    link.click();
+                    showNotification('✓ Download iniciado!');
+                }).catch(err => {
+                    console.error('Erro ao gerar URL:', err.message);
+                    showNotification('❌ Erro ao gerar URL de download!', 'error');
+                });
             } catch (err) {
                 console.error('Erro ao fazer download:', err.message);
                 showNotification('❌ Erro ao fazer download!', 'error');
