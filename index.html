@@ -503,6 +503,20 @@
             border: 1px solid rgba(50, 195, 187, 0.25);
         }
 
+        /* INDICADOR DE PLACA DE VÍDEO - VERDE (COM PLACA) */
+        .product-specs span.com-placa {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+        }
+
+        /* INDICADOR DE PLACA DE VÍDEO - VERMELHO (SEM PLACA) */
+        .product-specs span.sem-placa {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
         .back-btn {
             margin-bottom: 20px;
         }
@@ -1684,8 +1698,12 @@
                 const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
                 
                 let specs = '';
-                if (p.categoria === 'Notebooks' && p.temPlacaVideo) {
-                    specs = '<div class="product-specs"><span>🎮 Placa de Vídeo Dedicada</span></div>';
+                if (p.categoria === 'Notebooks') {
+                    if (p.temPlacaVideo) {
+                        specs = '<div class="product-specs"><span class="com-placa">🎮 Com Placa Dedicada</span></div>';
+                    } else {
+                        specs = '<div class="product-specs"><span class="sem-placa">🔌 Sem Placa Dedicada</span></div>';
+                    }
                 }
                 
                 html += `
@@ -1732,8 +1750,12 @@
             
             produtosFiltrados.forEach(p => {
                 let specs = '';
-                if (p.categoria === 'Notebooks' && p.temPlacaVideo) {
-                    specs = '<div class="product-specs"><span>🎮 Placa de Vídeo Dedicada</span></div>';
+                if (p.categoria === 'Notebooks') {
+                    if (p.temPlacaVideo) {
+                        specs = '<div class="product-specs"><span class="com-placa">🎮 Com Placa Dedicada</span></div>';
+                    } else {
+                        specs = '<div class="product-specs"><span class="sem-placa">🔌 Sem Placa Dedicada</span></div>';
+                    }
                 }
                 
                 html += `
