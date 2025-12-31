@@ -544,35 +544,53 @@
             border-color: var(--primary);
         }
 
-        /* FILTROS DE SUBCATEGORIA */
+        /* FILTROS DE SUBCATEGORIA COM PLACA DE VÍDEO */
         .subcategoria-filter {
-            display: flex;
-            gap: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
         }
 
-        .subcategoria-filter button {
-            padding: 6px 12px;
-            border: 1px solid var(--border);
+        .subcategoria-btn {
+            padding: 12px;
+            border: 2px solid var(--border);
             background: transparent;
-            color: var(--text-light);
-            border-radius: 6px;
+            color: var(--text);
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.25s;
-            font-weight: 400;
-            font-size: 13px;
+            font-weight: 500;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .subcategoria-filter button:hover {
+        .subcategoria-btn:hover {
             border-color: var(--primary);
-            color: var(--primary);
+            background: rgba(50, 195, 187, 0.05);
         }
 
-        .subcategoria-filter button.active {
+        .subcategoria-btn.active {
             background: rgba(50, 195, 187, 0.2);
             color: var(--primary);
             border-color: var(--primary);
+        }
+
+        .subcategoria-btn-titulo {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .subcategoria-btn-specs {
+            font-size: 11px;
+            color: var(--text-light);
+            font-weight: 400;
+        }
+
+        .subcategoria-btn.active .subcategoria-btn-specs {
+            color: var(--primary);
         }
 
         /* FILTROS EM SEÇÃO */
@@ -621,6 +639,10 @@
             }
 
             .two-column-filter {
+                grid-template-columns: 1fr;
+            }
+
+            .subcategoria-filter {
                 grid-template-columns: 1fr;
             }
         }
@@ -1274,10 +1296,14 @@
             }
 
             let html = '<div class="subcategoria-filter">';
-            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoria(null)">Todas</button>';
+            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoria(null)"><span class="subcategoria-btn-titulo">Todas</span></button>';
 
             Object.keys(subcategorias).forEach(sub => {
-                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoria('${sub}')">${sub}</button>`;
+                const notebooksComSubcategoria = produtos.filter(p => p.categoria === categoriaAtiva && p.subcategoria === sub);
+                const temPlacaVideo = notebooksComSubcategoria.some(p => p.temPlacaVideo);
+                const specs = categoriaAtiva === 'Notebooks' && temPlacaVideo ? ' 🎮 Com GPU Dedicada' : '';
+                
+                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoria('${sub}')"><span class="subcategoria-btn-titulo">${sub}</span>${specs ? `<span class="subcategoria-btn-specs">${specs}</span>` : ''}</button>`;
             });
 
             html += '</div>';
@@ -1351,10 +1377,14 @@
             }
 
             let html = '';
-            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar(null)">Todas</button>';
+            html += '<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar(null)"><span class="subcategoria-btn-titulo">Todas</span></button>';
 
             Object.keys(subcategorias).forEach(sub => {
-                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar('${sub}')">${sub}</button>`;
+                const notebooksComSubcategoria = produtos.filter(p => p.categoria === categoriativaLocar && p.subcategoria === sub && p.disponivel);
+                const temPlacaVideo = notebooksComSubcategoria.some(p => p.temPlacaVideo);
+                const specs = categoriativaLocar === 'Notebooks' && temPlacaVideo ? ' 🎮 Com GPU Dedicada' : '';
+                
+                html += `<button class="subcategoria-btn" onclick="filtrarPorSubcategoriaLocar('${sub}')"><span class="subcategoria-btn-titulo">${sub}</span>${specs ? `<span class="subcategoria-btn-specs">${specs}</span>` : ''}</button>`;
             });
 
             container.innerHTML = html;
