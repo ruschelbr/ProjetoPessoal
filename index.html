@@ -449,6 +449,15 @@
             margin-bottom: 8px;
         }
 
+        .product-categoria {
+            font-size: 11px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         .back-btn {
             margin-bottom: 20px;
         }
@@ -458,6 +467,55 @@
             gap: 10px;
             flex-wrap: wrap;
             margin-top: 20px;
+        }
+
+        /* NOVO: Filtros de categoria */
+        .categoria-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .categoria-filter button {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-weight: 500;
+        }
+
+        .categoria-filter button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .categoria-filter button.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* NOVO: Filtros em dropdown */
+        .filter-section {
+            background: rgba(94, 82, 64, 0.12);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .filter-section h3 {
+            margin-bottom: 15px;
+        }
+
+        .two-column-filter {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
 
         @media (max-width: 768px) {
@@ -485,6 +543,10 @@
                 padding: 20px;
                 width: 95%;
             }
+
+            .two-column-filter {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 480px) {
@@ -495,6 +557,14 @@
             .equipamentos-grid, .clientes-grid {
                 grid-template-columns: 1fr;
             }
+
+            .categoria-filter {
+                flex-direction: column;
+            }
+
+            .categoria-filter button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -502,7 +572,6 @@
     <!-- TELA DE LOGIN -->
     <div id="loginScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #1f2121 0%, #2a3f3d 100%); z-index: 1000; display: flex; align-items: center; justify-content: center; font-family: inherit;">
         <div style="background: linear-gradient(180deg, #262828 0%, #1f2121 100%); padding: 60px 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(50,195,187,0.2); max-width: 420px; width: 90%; border: 2px solid rgba(50,195,187,0.3); position: relative; overflow: hidden;">
-            <!-- Elemento decorativo -->
             <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(50,195,187,0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
             
             <div style="position: relative; z-index: 1;">
@@ -534,6 +603,7 @@
             <button class="btn btn-secondary" onclick="showView('equipamentos')">📦 Equipamentos</button>
             <button class="btn btn-secondary" onclick="showView('clientes')">👥 Clientes</button>
             <button class="btn btn-secondary" onclick="showView('historico')">📜 Histórico</button>
+            <button class="btn btn-danger" onclick="logoutOperador()">🚪 Sair</button>
         </div>
     </header>
 
@@ -573,6 +643,13 @@
                 <h2>📦 Equipamentos</h2>
                 <button class="btn btn-primary" onclick="openAddProductModal()">➕ Novo Produto</button>
             </div>
+            
+            <!-- FILTROS DE CATEGORIA -->
+            <div class="filter-section">
+                <h3>🏷️ Filtrar por Categoria</h3>
+                <div id="categoriasFilter"></div>
+            </div>
+
             <div id="equipamentosList"></div>
             <div id="produtoDetalhes"></div>
         </div>
@@ -591,7 +668,7 @@
         <div id="historico" class="view">
             <h2>📜 Histórico de Devoluções</h2>
             <div style="margin-bottom: 20px; display: flex; gap: 10px;">
-                <input type="text" id="buscaHistorico" placeholder="Buscar por cliente, equipamento..." style="flex: 1;">
+                <input type="text" id="buscaHistorico" placeholder="Buscar por cliente, equipamento...">
                 <button class="btn btn-secondary" onclick="filtrarHistorico()">🔍 Buscar</button>
             </div>
             <div id="historicoList"></div>
@@ -607,21 +684,39 @@
             </div>
             <form id="formProduct">
                 <div class="form-group">
-                    <label for="nomeProduto">Nome do Produto *</label>
-                    <input type="text" id="nomeProduto" required>
+                    <label for="categoriaProduto">Categoria Principal *</label>
+                    <select id="categoriaProduto" required onchange="atualizarSubcategorias()">
+                        <option value="">Selecione a categoria...</option>
+                    </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="subcategoriaProduto">Subcategoria *</label>
+                    <select id="subcategoriaProduto" required>
+                        <option value="">Selecione a subcategoria...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="nomeProduto">Nome do Produto *</label>
+                    <input type="text" id="nomeProduto" placeholder="Ex: Notebook Lenovo i3 8GB" required>
+                </div>
+
                 <div class="form-group">
                     <label for="serieProduto">Número de Série *</label>
                     <input type="text" id="serieProduto" required>
                 </div>
+
                 <div class="form-group">
                     <label for="valorDiarioProduto">Valor Diário (R$) *</label>
                     <input type="number" id="valorDiarioProduto" step="0.01" required>
                 </div>
+
                 <div class="form-group">
-                    <label for="descricaoProduto">Descrição</label>
-                    <textarea id="descricaoProduto"></textarea>
+                    <label for="descricaoProduto">Descrição (Configurações, etc)</label>
+                    <textarea id="descricaoProduto" placeholder="Ex: RAM 8GB, SSD 240GB, Processador i3-8100U"></textarea>
                 </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">✓ Adicionar</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddProduct')">Cancelar</button>
@@ -799,7 +894,7 @@
         </div>
     </div>
 
-    <!-- Firebase SDK - Versão Compatível -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
 
@@ -809,11 +904,49 @@
         let clientes = [];
         let locacoes = [];
         let operadorAutenticado = false;
-        const SENHA_PADRAO = '140906'; // ⚠️ Senha do operador
+        const SENHA_PADRAO = '140906';
         let contratosMap = {};
+        let categoriaAtiva = null;
+        let subcategoriaAtiva = null;
+
+        // ESTRUTURA DE CATEGORIAS
+        const CATEGORIAS = {
+            "Notebooks": {
+                "I3": true,
+                "I5": true,
+                "I7": true,
+                "Ryzen": true,
+                "MacBook": true
+            },
+            "Tablets": {
+                "Samsung Tab A": true,
+                "Samsung S6": true,
+                "Samsung S10": true
+            },
+            "Impressoras": {
+                "Multifuncional Color Cânon 3110": true,
+                "Multifuncional Laser": true
+            },
+            "Monitores": {
+                "19\"": true,
+                "20\"": true,
+                "21\"": true
+            },
+            "TVs": {
+                "43 polegadas": true,
+                "55 polegadas": true
+            },
+            "Celulares": {
+                "iPhone 15 Pro Max": true,
+                "iPhone 15 Pro": true
+            },
+            "Projetores": {
+                "Epson": true
+            },
+            "Telas de Projeção": true
+        };
 
         // ========== CONFIGURAÇÃO FIREBASE ==========
-        // ⚠️ SUBSTITUIR COM SEUS DADOS DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyD7c57FzA7FsUo0xISFSvzCyCyQxaNLBmA",
             authDomain: "locacao-equipamentos.firebaseapp.com",
@@ -824,13 +957,11 @@
             appId: "1:222522636818:web:4a98e9577b9847ab9276cb"
         };
 
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // ========== FUNÇÕES DE SINCRONIZAÇÃO FIREBASE ==========
         function loadDadosFromFirebase() {
-            // Carregar produtos
             db.ref('produtos').on('value', (snapshot) => {
                 const data = snapshot.val();
                 produtos = data ? Object.values(data) : [];
@@ -839,7 +970,6 @@
                 }
             });
 
-            // Carregar clientes
             db.ref('clientes').on('value', (snapshot) => {
                 const data = snapshot.val();
                 clientes = data ? Object.values(data) : [];
@@ -848,7 +978,6 @@
                 }
             });
 
-            // Carregar locações
             db.ref('locacoes').on('value', (snapshot) => {
                 const data = snapshot.val();
                 locacoes = data ? Object.values(data) : [];
@@ -918,7 +1047,6 @@
                 db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
                     console.log('✓ Contrato salvo com sucesso');
                     showNotification('✓ Contrato anexado com sucesso!');
-                    // Atualizar mapa local
                     contratosMap[locacaoId] = contratoData;
                 }).catch(err => {
                     console.error('Erro ao salvar contrato:', err.message);
@@ -941,6 +1069,73 @@
                 console.error('Erro ao carregar contratos:', err.message);
                 contratosMap = {};
             });
+        }
+
+        // ========== FUNÇÕES DE CATEGORIZAÇÃO ==========
+        function atualizarSubcategorias() {
+            const categoriaSelecionada = document.getElementById('categoriaProduto').value;
+            const selectSubcategoria = document.getElementById('subcategoriaProduto');
+            selectSubcategoria.innerHTML = '<option value="">Selecione a subcategoria...</option>';
+
+            if (categoriaSelecionada && CATEGORIAS[categoriaSelecionada]) {
+                const subcategorias = CATEGORIAS[categoriaSelecionada];
+                
+                if (typeof subcategorias === 'object' && subcategorias !== null && Object.keys(subcategorias).length > 0) {
+                    Object.keys(subcategorias).forEach(sub => {
+                        const option = document.createElement('option');
+                        option.value = sub;
+                        option.textContent = sub;
+                        selectSubcategoria.appendChild(option);
+                    });
+                } else {
+                    // Se não tiver subcategorias, usar a categoria como valor
+                    const option = document.createElement('option');
+                    option.value = categoriaSelecionada;
+                    option.textContent = categoriaSelecionada;
+                    selectSubcategoria.appendChild(option);
+                }
+            }
+        }
+
+        function preencherCategorias() {
+            const selectCategoria = document.getElementById('categoriaProduto');
+            selectCategoria.innerHTML = '<option value="">Selecione a categoria...</option>';
+
+            Object.keys(CATEGORIAS).forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                selectCategoria.appendChild(option);
+            });
+        }
+
+        function renderFiltrosCategorias() {
+            const container = document.getElementById('categoriasFilter');
+            let html = '<div class="categoria-filter">';
+            
+            html += '<button class="categoria-btn" onclick="filtrarPorCategoria(null)" style="border-color: var(--primary); background: var(--primary); color: white;">Todas</button>';
+
+            Object.keys(CATEGORIAS).forEach(cat => {
+                html += `<button class="categoria-btn" onclick="filtrarPorCategoria('${cat}')">${cat}</button>`;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Marcar a primeira como ativa
+            const firstBtn = container.querySelector('.categoria-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+        }
+
+        function filtrarPorCategoria(categoria) {
+            categoriaAtiva = categoria;
+            subcategoriaAtiva = null;
+
+            // Atualizar botões ativos
+            document.querySelectorAll('.categoria-btn').forEach(btn => btn.classList.remove('active'));
+            if (event) event.target.classList.add('active');
+
+            renderEquipamentos();
         }
 
         // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
@@ -979,7 +1174,10 @@
             window.scrollTo(0, 0);
 
             if (viewName === 'dashboard') updateDashboard();
-            else if (viewName === 'equipamentos') renderEquipamentos();
+            else if (viewName === 'equipamentos') {
+                renderFiltrosCategorias();
+                renderEquipamentos();
+            }
             else if (viewName === 'clientes') renderClientes();
             else if (viewName === 'historico') renderHistorico();
         }
@@ -1011,18 +1209,24 @@
         // ========== PRODUTOS ==========
         function openAddProductModal() {
             document.getElementById('formProduct').reset();
+            preencherCategorias();
             openModal('modalAddProduct');
         }
 
         document.getElementById('formProduct').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const categoria = document.getElementById('categoriaProduto').value;
+            const subcategoria = document.getElementById('subcategoriaProduto').value;
+
             const produto = {
                 id: Date.now().toString(),
                 nome: document.getElementById('nomeProduto').value,
                 serie: document.getElementById('serieProduto').value,
                 descricao: document.getElementById('descricaoProduto').value,
                 valorDiario: parseFloat(document.getElementById('valorDiarioProduto').value),
+                categoria: categoria,
+                subcategoria: subcategoria,
                 disponivel: true,
                 locacaoId: null
             };
@@ -1035,20 +1239,26 @@
         function renderEquipamentos() {
             const container = document.getElementById('equipamentosList');
             
-            if (produtos.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhum equipamento cadastrado</div>';
+            let produtosFiltrados = produtos;
+            if (categoriaAtiva) {
+                produtosFiltrados = produtos.filter(p => p.categoria === categoriaAtiva);
+            }
+
+            if (produtosFiltrados.length === 0) {
+                container.innerHTML = '<div class="empty-state">Nenhum equipamento nesta categoria</div>';
                 return;
             }
 
             let html = '<div class="equipamentos-grid">';
             
-            produtos.forEach(p => {
+            produtosFiltrados.forEach(p => {
                 const status = p.disponivel ? 'badge-available' : 'badge-occupied';
                 const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
                 
                 html += `
                     <div class="product-card" onclick="verDetalheProduto('${p.id}')">
                         <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
+                        ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
                         <h3>${p.nome}</h3>
                         <div class="product-serie">📌 ${p.serie}</div>
                         <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
@@ -1082,6 +1292,7 @@
                 <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">← Voltar</button>
                 <div class="produto-detalhes">
                     <h2>${produto.nome}</h2>
+                    ${produto.categoria ? `<div style="color: var(--primary); font-weight: 600; margin-bottom: 16px;">🏷️ ${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</div>` : ''}
                     <div class="detail-section">
                         <h3>📦 Informações</h3>
                         <div class="detail-item">
@@ -1279,6 +1490,7 @@
                     <div class="equipamentos-grid" style="margin-top: 15px;">
                         ${produtosDisponiveis.map(p => `
                             <div class="product-card" onclick="abrirLocar('${p.id}', '${clienteId}')">
+                                ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
                                 <h3>${p.nome}</h3>
                                 <div class="product-serie">📌 ${p.serie}</div>
                                 <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
@@ -1307,6 +1519,12 @@
                     <strong>Produto</strong>
                     <span>${produto.nome}</span>
                 </div>
+                ${produto.categoria ? `
+                    <div class="detail-item">
+                        <strong>Categoria</strong>
+                        <span>${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</span>
+                    </div>
+                ` : ''}
                 <div class="detail-item">
                     <strong>Série</strong>
                     <span>${produto.serie}</span>
@@ -1382,24 +1600,21 @@
                 temContrato: contratoFile ? true : false
             };
 
-            // Salvar locação
             saveLocacao(locacao);
 
-            // Salvar contrato com delay para sincronização - APENAS se arquivo foi enviado
             if (contratoFile) {
                 setTimeout(() => {
                     salvarContratoFirebase(locacao.id, contratoFile);
                 }, 500);
             }
 
-            // Atualizar produto como não disponível
             produto.disponivel = false;
             produto.locacaoId = locacao.id;
             saveProduto(produto);
 
             showNotification('✓ Locação criada com sucesso!');
             closeModal('modalLocarProduto');
-            document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
+            document.getElementById('contratoFile').value = '';
             showView('clientes');
         });
 
@@ -1420,11 +1635,11 @@
             }
 
             const valorFinal = locacao.valorTotal + multa;
-            const temContrato = contratosMap && contratosMap[locacao.id];
 
             document.getElementById('infoDevolver').innerHTML = `
                 <div class="detail-section">
                     <h3>📦 Produto: ${produto.nome}</h3>
+                    ${produto.categoria ? `<small>Categoria: ${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</small><br>` : ''}
                     <small>Série: ${produto.serie}</small>
                 </div>
                 <div class="detail-section">
@@ -1462,17 +1677,15 @@
             locacao.condicao = document.getElementById('condicao').value;
             locacao.valorFinal = locacao.valorTotal + multa;
 
-            // Salvar locação finalizada
             saveLocacao(locacao);
 
-            // Atualizar produto como disponível
             produto.disponivel = true;
             produto.locacaoId = null;
             saveProduto(produto);
 
             showNotification('✓ Produto devolvido!');
             closeModal('modalDevolverProduto');
-            document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
+            document.getElementById('contratoFile').value = '';
         });
 
         // ========== DASHBOARD ==========
@@ -1597,11 +1810,9 @@
         }
 
         function downloadContrato(locacaoId) {
-            // Tentar primeiro do mapa local
             let contrato = contratosMap[locacaoId];
             
             if (!contrato) {
-                // Se não encontrar, buscar do Firebase
                 db.ref('contratos/' + locacaoId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
@@ -1641,11 +1852,12 @@
             const cliente = clientes.find(c => c.id === locacao.clienteId);
 
             document.getElementById('locacaoIdContrato').value = locacaoId;
-            document.getElementById('contratoFileModal').value = ''; // Limpar input
+            document.getElementById('contratoFileModal').value = '';
 
             document.getElementById('infoContratoModal').innerHTML = `
                 <div class="detail-section">
                     <h3>📦 Produto: ${produto.nome}</h3>
+                    ${produto.categoria ? `<small>Categoria: ${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</small><br>` : ''}
                     <small>Série: ${produto.serie}</small>
                 </div>
                 <div class="detail-section">
@@ -1673,9 +1885,8 @@
 
             salvarContratoFirebase(locacaoId, contratoFile);
             closeModal('modalAdicionarContrato');
-            document.getElementById('contratoFileModal').value = ''; // Limpar input
+            document.getElementById('contratoFileModal').value = '';
             
-            // Recarregar a view atual para mostrar o novo contrato
             const activeView = document.querySelector('.view.active').id;
             if (activeView === 'dashboard') updateDashboard();
             else if (activeView === 'historico') renderHistorico();
@@ -1696,7 +1907,6 @@
                 });
             });
 
-            // Verificar senha ao pressionar Enter na tela de login
             document.getElementById('senhaOperador').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') loginOperador();
             });
