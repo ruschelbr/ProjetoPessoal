@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de LocaÃ§Ã£o de Equipamentos</title>
+    <title>Sistema de Locação de Equipamentos</title>
     <style>
         :root {
             --primary: #32c3bb;
@@ -507,13 +507,13 @@
             
             <div style="position: relative; z-index: 1;">
                 <div style="text-align: center; margin-bottom: 50px;">
-                    <div style="font-size: 50px; margin-bottom: 15px;">ðŸ”</div>
-                    <h1 style="color: var(--primary); margin: 0 0 8px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Sistema de LocaÃ§Ã£o</h1>
+                    <div style="font-size: 50px; margin-bottom: 15px;">🔐</div>
+                    <h1 style="color: var(--primary); margin: 0 0 8px 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">Sistema de Locação</h1>
                     <p style="color: var(--text-light); margin: 0; font-size: 13px; font-weight: 400;">Equipamentos</p>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 30px;">
-                    <label for="senhaOperador" style="font-weight: 600; color: var(--primary); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">AutenticaÃ§Ã£o</label>
+                    <label for="senhaOperador" style="font-weight: 600; color: var(--primary); text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em;">Autenticação</label>
                     <input type="password" id="senhaOperador" placeholder="Digite sua senha" required style="font-size: 15px; padding: 14px 16px; margin-top: 10px;">
                 </div>
 
@@ -528,19 +528,19 @@
 
     <!-- HEADER -->
     <header style="display: none;" id="mainHeader">
-        <h1>ðŸš€ LocaÃ§Ã£o de Equipamentos</h1>
+        <h1>🚀 Locação de Equipamentos</h1>
         <div class="header-buttons">
-            <button class="btn btn-secondary" onclick="showView('dashboard')">ðŸ“Š Dashboard</button>
-            <button class="btn btn-secondary" onclick="showView('equipamentos')">ðŸ“¦ Equipamentos</button>
-            <button class="btn btn-secondary" onclick="showView('clientes')">ðŸ‘¥ Clientes</button>
-            <button class="btn btn-secondary" onclick="showView('historico')">ðŸ“œ HistÃ³rico</button>
+            <button class="btn btn-secondary" onclick="showView('dashboard')">📊 Dashboard</button>
+            <button class="btn btn-secondary" onclick="showView('equipamentos')">📦 Equipamentos</button>
+            <button class="btn btn-secondary" onclick="showView('clientes')">👥 Clientes</button>
+            <button class="btn btn-secondary" onclick="showView('historico')">📜 Histórico</button>
         </div>
     </header>
 
     <div class="container">
         <!-- DASHBOARD -->
         <div id="dashboard" class="view active">
-            <h2>ðŸ“Š Dashboard Principal</h2>
+            <h2>📊 Dashboard Principal</h2>
             
             <div class="dashboard-stats">
                 <div class="stat-card">
@@ -562,7 +562,7 @@
             </div>
 
             <div class="table-container">
-                <h3>ðŸ“‹ LocaÃ§Ãµes Ativas</h3>
+                <h3>📋 Locações Ativas</h3>
                 <div id="locacoesAtivas"></div>
             </div>
         </div>
@@ -570,8 +570,8 @@
         <!-- EQUIPAMENTOS -->
         <div id="equipamentos" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>ðŸ“¦ Equipamentos</h2>
-                <button class="btn btn-primary" onclick="openAddProductModal()">âž• Novo Produto</button>
+                <h2>📦 Equipamentos</h2>
+                <button class="btn btn-primary" onclick="openAddProductModal()">➕ Novo Produto</button>
             </div>
             <div id="equipamentosList"></div>
             <div id="produtoDetalhes"></div>
@@ -580,19 +580,19 @@
         <!-- CLIENTES -->
         <div id="clientes" class="view">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2>ðŸ‘¥ Clientes</h2>
-                <button class="btn btn-primary" onclick="openAddClientModal()">âž• Novo Cliente</button>
+                <h2>👥 Clientes</h2>
+                <button class="btn btn-primary" onclick="openAddClientModal()">➕ Novo Cliente</button>
             </div>
             <div id="clientesList"></div>
             <div id="clienteDetalhes"></div>
         </div>
 
-        <!-- HISTÃ“RICO -->
+        <!-- HISTÓRICO -->
         <div id="historico" class="view">
-            <h2>ðŸ“œ HistÃ³rico de DevoluÃ§Ãµes</h2>
+            <h2>📜 Histórico de Devoluções</h2>
             <div style="margin-bottom: 20px; display: flex; gap: 10px;">
                 <input type="text" id="buscaHistorico" placeholder="Buscar por cliente, equipamento..." style="flex: 1;">
-                <button class="btn btn-secondary" onclick="filtrarHistorico()">ðŸ” Buscar</button>
+                <button class="btn btn-secondary" onclick="filtrarHistorico()">🔍 Buscar</button>
             </div>
             <div id="historicoList"></div>
         </div>
@@ -607,23 +607,46 @@
             </div>
             <form id="formProduct">
                 <div class="form-group">
+                    <label for="categoriaProduto">Categoria Principal *</label>
+                    <select id="categoriaProduto" required onchange="atualizarSubcategorias()">
+                        <option value="">Selecione a categoria...</option>
+                        <option value="Notebooks">Notebooks</option>
+                        <option value="Tablets">Tablets</option>
+                        <option value="Impressoras">Impressoras</option>
+                        <option value="Monitores">Monitores</option>
+                        <option value="TVs">TVs</option>
+                        <option value="Celulares">Celulares</option>
+                        <option value="Projetores">Projetores</option>
+                        <option value="Telas de Projeção">Telas de Projeção</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subcategoriaProduto">Subcategoria *</label>
+                    <select id="subcategoriaProduto" required>
+                        <option value="">Selecione a subcategoria...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="nomeProduto">Nome do Produto *</label>
-                    <input type="text" id="nomeProduto" required>
+                    <input type="text" id="nomeProduto" placeholder="Ex: Notebook Lenovo ideapad i3 8 ram ssd 128Gb" required>
                 </div>
                 <div class="form-group">
-                    <label for="serieProduto">NÃºmero de SÃ©rie *</label>
+                    <label for="serieProduto">Número de Série *</label>
                     <input type="text" id="serieProduto" required>
                 </div>
                 <div class="form-group">
-                    <label for="valorDiarioProduto">Valor DiÃ¡rio (R$) *</label>
+                    <label for="valorDiarioProduto">Valor Diário (R$) *</label>
                     <input type="number" id="valorDiarioProduto" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="descricaoProduto">DescriÃ§Ã£o</label>
-                    <textarea id="descricaoProduto"></textarea>
+                    <label for="descricaoProduto">Descrição / Configuração</label>
+                    <textarea id="descricaoProduto" placeholder="Ex: 8GB RAM, SSD 128GB, Intel Core i3..."></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">âœ“ Adicionar</button>
+                    <button type="submit" class="btn btn-primary">✓ Adicionar</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddProduct')">Cancelar</button>
                 </div>
             </form>
@@ -651,11 +674,11 @@
                     <input type="tel" id="telefoneCliente" required>
                 </div>
                 <div class="form-group">
-                    <label for="enderecoCliente">EndereÃ§o *</label>
+                    <label for="enderecoCliente">Endereço *</label>
                     <input type="text" id="enderecoCliente" required>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">âœ“ Adicionar</button>
+                    <button type="submit" class="btn btn-primary">✓ Adicionar</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalAddClient')">Cancelar</button>
                 </div>
             </form>
@@ -671,33 +694,33 @@
             </div>
             <form id="formLocar">
                 <div class="detail-section">
-                    <h3>ðŸ“¦ Produto</h3>
+                    <h3>📦 Produto</h3>
                     <div id="produtoLocarInfo"></div>
                 </div>
 
                 <div class="detail-section">
-                    <h3>ðŸ‘¤ Cliente</h3>
+                    <h3>👤 Cliente</h3>
                     <div id="clienteLocarInfo"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="dataLocacao">Data de LocaÃ§Ã£o *</label>
+                    <label for="dataLocacao">Data de Locação *</label>
                     <input type="date" id="dataLocacao" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="dataDevolucao">Data de DevoluÃ§Ã£o *</label>
+                    <label for="dataDevolucao">Data de Devolução *</label>
                     <input type="date" id="dataDevolucao" required>
                 </div>
 
                 <div class="form-group">
                     <label for="contratoFile">Contrato (PDF, Word, etc) - Opcional</label>
                     <input type="file" id="contratoFile" accept=".pdf,.doc,.docx,.txt" style="padding: 8px;">
-                    <small style="color: var(--text-light); display: block; margin-top: 6px;">VocÃª pode adicionar o contrato depois se necessÃ¡rio</small>
+                    <small style="color: var(--text-light); display: block; margin-top: 6px;">Você pode adicionar o contrato depois se necessário</small>
                 </div>
 
                 <div class="detail-section">
-                    <h3>ðŸ’° CÃ¡lculo</h3>
+                    <h3>💰 Cálculo</h3>
                     <div class="detail-item">
                         <strong>Valor/Dia</strong>
                         <span id="valorDiaLocar" data-valor="0">R$ 0,00</span>
@@ -713,7 +736,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">âœ“ Confirmar LocaÃ§Ã£o</button>
+                    <button type="submit" class="btn btn-primary">✓ Confirmar Locação</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalLocarProduto')">Cancelar</button>
                 </div>
             </form>
@@ -739,7 +762,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">âœ“ Anexar Contrato</button>
+                    <button type="submit" class="btn btn-primary">✓ Anexar Contrato</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalAdicionarContrato')">Cancelar</button>
                 </div>
             </form>
@@ -759,22 +782,22 @@
                 <div id="infoDevolver"></div>
 
                 <div class="form-group">
-                    <label for="dataDevolucaoReal">Data de DevoluÃ§Ã£o Real *</label>
+                    <label for="dataDevolucaoReal">Data de Devolução Real *</label>
                     <input type="date" id="dataDevolucaoReal" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="condicao">CondiÃ§Ã£o do Equipamento *</label>
+                    <label for="condicao">Condição do Equipamento *</label>
                     <select id="condicao" required>
                         <option value="">Selecione...</option>
-                        <option value="Perfeito">âœ… Perfeito</option>
-                        <option value="Pequenos danos">âš ï¸ Pequenos danos</option>
-                        <option value="Danificado">ðŸ”´ Danificado</option>
+                        <option value="Perfeito">✅ Perfeito</option>
+                        <option value="Pequenos danos">⚠️ Pequenos danos</option>
+                        <option value="Danificado">🔴 Danificado</option>
                     </select>
                 </div>
 
                 <div class="detail-section">
-                    <h3>ðŸ’° CÃ¡lculo Final</h3>
+                    <h3>💰 Cálculo Final</h3>
                     <div class="detail-item">
                         <strong>Valor Original</strong>
                         <span id="valorOriginalDevolver">R$ 0,00</span>
@@ -790,7 +813,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-success">âœ“ Confirmar DevoluÃ§Ã£o</button>
+                    <button type="submit" class="btn btn-success">✓ Confirmar Devolução</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal('modalDevolverProduto')">Cancelar</button>
                 </div>
             </form>
@@ -799,21 +822,38 @@
         </div>
     </div>
 
-    <!-- Firebase SDK - VersÃ£o CompatÃ­vel -->
+    <!-- Firebase SDK - Versão Compatível -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+
+    <!-- Regras de Segurança do Firebase Storage (copie para o Firebase Console) -->
+    <script>
+        const STORAGE_RULES = `
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /contratos/{locacaoId}/{allPaths=**} {
+      allow read, write;
+    }
+  }
+}
+        `;
+        console.log('📋 Copie as regras do Storage do console do navegador para o Firebase Console:');
+        console.log(STORAGE_RULES);
+    </script>
 
     <script>
-        // ========== VARIÃVEIS GLOBAIS ==========
+        // ========== VARIÁVEIS GLOBAIS ==========
         let produtos = [];
         let clientes = [];
         let locacoes = [];
         let operadorAutenticado = false;
-        const SENHA_PADRAO = '140906'; // âš ï¸ Senha do operador
+        const SENHA_PADRAO = '140906'; // ⚠️ Senha do operador
         let contratosMap = {};
 
-        // ========== CONFIGURAÃ‡ÃƒO FIREBASE ==========
-        // âš ï¸ SUBSTITUIR COM SEUS DADOS DO FIREBASE
+        // ========== CONFIGURAÇÃO FIREBASE ==========
+        // ⚠️ SUBSTITUIR COM SEUS DADOS DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyD7c57FzA7FsUo0xISFSvzCyCyQxaNLBmA",
             authDomain: "locacao-equipamentos.firebaseapp.com",
@@ -827,8 +867,9 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const storage = firebase.storage();
 
-        // ========== FUNÃ‡Ã•ES DE SINCRONIZAÃ‡ÃƒO FIREBASE ==========
+        // ========== FUNÇÕES DE SINCRONIZAÇÃO FIREBASE ==========
         function loadDadosFromFirebase() {
             // Carregar produtos
             db.ref('produtos').on('value', (snapshot) => {
@@ -848,7 +889,7 @@
                 }
             });
 
-            // Carregar locaÃ§Ãµes
+            // Carregar locações
             db.ref('locacoes').on('value', (snapshot) => {
                 const data = snapshot.val();
                 locacoes = data ? Object.values(data) : [];
@@ -858,92 +899,96 @@
 
         function saveProduto(produto) {
             db.ref('produtos/' + produto.id).set(produto).then(() => {
-                console.log('âœ“ Produto salvo com sucesso');
-                showNotification('âœ“ Produto salvo com sucesso!');
+                console.log('✓ Produto salvo com sucesso');
+                showNotification('✓ Produto salvo com sucesso!');
             }).catch(err => {
                 console.error('Erro ao salvar produto:', err.message);
-                showNotification('âŒ Erro ao salvar: ' + err.message, 'error');
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
             });
         }
 
         function deleteProdutoFirebase(produtoId) {
             db.ref('produtos/' + produtoId).remove().then(() => {
-                console.log('âœ“ Produto deletado');
-                showNotification('âœ“ Produto deletado!');
+                console.log('✓ Produto deletado');
+                showNotification('✓ Produto deletado!');
             }).catch(err => {
                 console.error('Erro ao deletar:', err.message);
-                showNotification('âŒ Erro ao deletar: ' + err.message, 'error');
+                showNotification('❌ Erro ao deletar: ' + err.message, 'error');
             });
         }
 
         function saveCliente(cliente) {
             db.ref('clientes/' + cliente.id).set(cliente).then(() => {
-                console.log('âœ“ Cliente salvo com sucesso');
-                showNotification('âœ“ Cliente salvo com sucesso!');
+                console.log('✓ Cliente salvo com sucesso');
+                showNotification('✓ Cliente salvo com sucesso!');
             }).catch(err => {
                 console.error('Erro ao salvar cliente:', err.message);
-                showNotification('âŒ Erro ao salvar: ' + err.message, 'error');
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
             });
         }
 
         function deleteClienteFirebase(clienteId) {
             db.ref('clientes/' + clienteId).remove().then(() => {
-                console.log('âœ“ Cliente deletado');
-                showNotification('âœ“ Cliente deletado!');
+                console.log('✓ Cliente deletado');
+                showNotification('✓ Cliente deletado!');
             }).catch(err => {
                 console.error('Erro ao deletar:', err.message);
-                showNotification('âŒ Erro ao deletar: ' + err.message, 'error');
+                showNotification('❌ Erro ao deletar: ' + err.message, 'error');
             });
         }
 
         function saveLocacao(locacao) {
             db.ref('locacoes/' + locacao.id).set(locacao).then(() => {
-                console.log('âœ“ LocaÃ§Ã£o salva com sucesso');
-                showNotification('âœ“ LocaÃ§Ã£o criada com sucesso!');
+                console.log('✓ Locação salva com sucesso');
+                showNotification('✓ Locação criada com sucesso!');
             }).catch(err => {
-                console.error('Erro ao salvar locaÃ§Ã£o:', err.message);
-                showNotification('âŒ Erro ao salvar: ' + err.message, 'error');
+                console.error('Erro ao salvar locação:', err.message);
+                showNotification('❌ Erro ao salvar: ' + err.message, 'error');
             });
         }
 
         function salvarContratoFirebase(locacaoId, arquivo) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
+            // Usar Firebase Storage para armazenar o arquivo
+            const storageRef = storage.ref('contratos/' + locacaoId + '/' + arquivo.name);
+            
+            storageRef.put(arquivo).then((snapshot) => {
+                console.log('✓ Arquivo enviado com sucesso');
+                
+                // Salvar referência no Realtime Database
                 const contratoData = {
                     nome: arquivo.name,
                     tamanho: arquivo.size,
                     tipo: arquivo.type,
-                    data: e.target.result
+                    caminhoStorage: 'contratos/' + locacaoId + '/' + arquivo.name,
+                    dataUpload: new Date().toISOString()
                 };
+                
                 db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
-                    console.log('âœ“ Contrato salvo com sucesso');
-                    showNotification('âœ“ Contrato anexado com sucesso!');
-                    // Atualizar mapa local
+                    console.log('✓ Referência do contrato salva no banco de dados');
+                    showNotification('✓ Contrato anexado com sucesso!');
                     contratosMap[locacaoId] = contratoData;
                 }).catch(err => {
-                    console.error('Erro ao salvar contrato:', err.message);
-                    showNotification('âŒ Erro ao salvar contrato: ' + err.message, 'error');
+                    console.error('Erro ao salvar referência:', err.message);
+                    showNotification('❌ Erro ao salvar referência: ' + err.message, 'error');
                 });
-            };
-            reader.onerror = function(err) {
-                console.error('Erro ao ler arquivo:', err.message);
-                showNotification('âŒ Erro ao ler arquivo!', 'error');
-            };
-            reader.readAsDataURL(arquivo);
+            }).catch(err => {
+                console.error('Erro ao enviar arquivo:', err.message);
+                showNotification('❌ Erro ao enviar arquivo: ' + err.message, 'error');
+            });
         }
 
         function carregarContratos() {
             db.ref('contratos').once('value', (snapshot) => {
                 const data = snapshot.val();
                 contratosMap = data || {};
-                console.log('âœ“ Contratos carregados:', Object.keys(contratosMap).length);
+                console.log('✓ Contratos carregados:', Object.keys(contratosMap).length);
             }).catch(err => {
                 console.error('Erro ao carregar contratos:', err.message);
                 contratosMap = {};
             });
         }
 
-        // ========== FUNÃ‡Ã•ES DE AUTENTICAÃ‡ÃƒO ==========
+        // ========== FUNÇÕES DE AUTENTICAÇÃO ==========
         function loginOperador() {
             const senha = document.getElementById('senhaOperador').value;
             if (senha === SENHA_PADRAO) {
@@ -952,10 +997,10 @@
                 document.getElementById('loginScreen').style.display = 'none';
                 document.getElementById('mainHeader').style.display = 'flex';
                 document.getElementById('senhaOperador').value = '';
-                showNotification('âœ“ Login realizado com sucesso!');
+                showNotification('✓ Login realizado com sucesso!');
                 showView('dashboard');
             } else {
-                showNotification('âŒ Senha incorreta!', 'error');
+                showNotification('❌ Senha incorreta!', 'error');
             }
         }
 
@@ -968,11 +1013,11 @@
                 document.getElementById('senhaOperador').value = '';
                 document.getElementById('senhaOperador').focus();
                 window.scrollTo(0, 0);
-                showNotification('âœ“ Saiu do sistema!');
+                showNotification('✓ Saiu do sistema!');
             }
         }
 
-        // ========== FUNÃ‡Ã•ES PRINCIPAIS ==========
+        // ========== FUNÇÕES PRINCIPAIS ==========
         function showView(viewName) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(viewName).classList.add('active');
@@ -1008,9 +1053,39 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
+        // ========== CATEGORIAS E SUBCATEGORIAS ==========
+        const categoriasSubcategorias = {
+            'Notebooks': ['I3', 'I5', 'I7', 'Ryzen', 'MacBook'],
+            'Tablets': ['Samsung Tab A', 'Samsung S6', 'Samsung S10', 'Outros Tablets'],
+            'Impressoras': ['Multifuncional Color Canon', 'Multifuncional Laser', 'Outras'],
+            'Monitores': ['19 polegadas', '20 polegadas', '21 polegadas', '22 polegadas', 'Acima de 24'],
+            'TVs': ['43 polegadas', '55 polegadas', '65 polegadas', 'Outras'],
+            'Celulares': ['iPhone 15 Pro Max', 'iPhone 15 Pro', 'Samsung Galaxy', 'Outros'],
+            'Projetores': ['Epson', 'Outros Projetores'],
+            'Telas de Projeção': ['Padrão', 'Premium', 'Outras'],
+            'Outros': ['Diversos']
+        };
+
+        function atualizarSubcategorias() {
+            const categoria = document.getElementById('categoriaProduto').value;
+            const subcategoriaSelect = document.getElementById('subcategoriaProduto');
+            subcategoriaSelect.innerHTML = '<option value="">Selecione a subcategoria...</option>';
+
+            if (categoria && categoriasSubcategorias[categoria]) {
+                categoriasSubcategorias[categoria].forEach(sub => {
+                    const option = document.createElement('option');
+                    option.value = sub;
+                    option.textContent = sub;
+                    subcategoriaSelect.appendChild(option);
+                });
+            }
+        }
+
         // ========== PRODUTOS ==========
         function openAddProductModal() {
             document.getElementById('formProduct').reset();
+            document.getElementById('categoriaProduto').value = '';
+            document.getElementById('subcategoriaProduto').innerHTML = '<option value="">Selecione a subcategoria...</option>';
             openModal('modalAddProduct');
         }
 
@@ -1019,6 +1094,8 @@
             
             const produto = {
                 id: Date.now().toString(),
+                categoria: document.getElementById('categoriaProduto').value,
+                subcategoria: document.getElementById('subcategoriaProduto').value,
                 nome: document.getElementById('nomeProduto').value,
                 serie: document.getElementById('serieProduto').value,
                 descricao: document.getElementById('descricaoProduto').value,
@@ -1040,24 +1117,72 @@
                 return;
             }
 
-            let html = '<div class="equipamentos-grid">';
-            
+            // Agrupar produtos por categoria
+            const produtosPorCategoria = {};
             produtos.forEach(p => {
-                const status = p.disponivel ? 'badge-available' : 'badge-occupied';
-                const statusText = p.disponivel ? 'âœ… DisponÃ­vel' : 'ðŸ”´ Locado';
-                
-                html += `
-                    <div class="product-card" onclick="verDetalheProduto('${p.id}')">
-                        <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
-                        <h3>${p.nome}</h3>
-                        <div class="product-serie">ðŸ“Œ ${p.serie}</div>
-                        <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
-                        ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
-                    </div>
-                `;
+                const categoria = p.categoria || 'Sem Categoria';
+                if (!produtosPorCategoria[categoria]) {
+                    produtosPorCategoria[categoria] = [];
+                }
+                produtosPorCategoria[categoria].push(p);
             });
-            
-            html += '</div>';
+
+            // Renderizar por categoria
+            let html = '';
+            const categorias = Object.keys(produtosPorCategoria).sort();
+
+            categorias.forEach(categoria => {
+                const produtosDaCategoria = produtosPorCategoria[categoria];
+                
+                // Agrupar por subcategoria
+                const produtosPorSubcategoria = {};
+                produtosDaCategoria.forEach(p => {
+                    const subcategoria = p.subcategoria || 'Diversos';
+                    if (!produtosPorSubcategoria[subcategoria]) {
+                        produtosPorSubcategoria[subcategoria] = [];
+                    }
+                    produtosPorSubcategoria[subcategoria].push(p);
+                });
+
+                html += `
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px; font-size: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+                            📦 ${categoria}
+                        </h3>
+                `;
+
+                // Renderizar subcategorias
+                const subcategorias = Object.keys(produtosPorSubcategoria).sort();
+                subcategorias.forEach(subcategoria => {
+                    const produtosSubcat = produtosPorSubcategoria[subcategoria];
+                    
+                    if (subcategorias.length > 1) {
+                        html += `<h4 style="color: var(--text-light); margin: 16px 0 12px 0; font-size: 14px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">▸ ${subcategoria}</h4>`;
+                    }
+
+                    html += '<div class="equipamentos-grid" style="margin-bottom: 16px;">';
+
+                    produtosSubcat.forEach(p => {
+                        const status = p.disponivel ? 'badge-available' : 'badge-occupied';
+                        const statusText = p.disponivel ? '✅ Disponível' : '🔴 Locado';
+                        
+                        html += `
+                            <div class="product-card" onclick="verDetalheProduto('${p.id}')">
+                                <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
+                                <h3>${p.nome}</h3>
+                                <div class="product-serie">📌 ${p.serie}</div>
+                                <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
+                                ${p.descricao ? `<p style="font-size: 12px; color: #a7a9a9; margin-top: 10px;">${p.descricao}</p>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            });
+
             container.innerHTML = html;
             document.getElementById('produtoDetalhes').innerHTML = '';
         }
@@ -1073,36 +1198,47 @@
                 locacaoInfo = `
                     <div style="background: rgba(239, 68, 68, 0.15); padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(239, 68, 68, 0.25);">
                         <strong>Atualmente com:</strong> ${cliente ? cliente.nome : 'Cliente'}<br>
-                        <strong>AtÃ©:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
+                        <strong>Até:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
                     </div>
                 `;
             }
 
             const html = `
-                <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">â† Voltar</button>
+                <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">← Voltar</button>
                 <div class="produto-detalhes">
                     <h2>${produto.nome}</h2>
                     <div class="detail-section">
-                        <h3>ðŸ“¦ InformaÃ§Ãµes</h3>
+                        <h3>📂 Categorização</h3>
                         <div class="detail-item">
-                            <strong>SÃ©rie</strong>
+                            <strong>Categoria</strong>
+                            <span>${produto.categoria || 'Sem Categoria'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <strong>Subcategoria</strong>
+                            <span>${produto.subcategoria || 'Diversos'}</span>
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>📦 Informações</h3>
+                        <div class="detail-item">
+                            <strong>Série</strong>
                             <span>${produto.serie}</span>
                         </div>
                         <div class="detail-item">
-                            <strong>Valor DiÃ¡rio</strong>
+                            <strong>Valor Diário</strong>
                             <span>R$ ${produto.valorDiario.toFixed(2)}</span>
                         </div>
                         <div class="detail-item">
                             <strong>Status</strong>
                             <span>
                                 <span class="badge ${produto.disponivel ? 'badge-available' : 'badge-occupied'}">
-                                    ${produto.disponivel ? 'âœ… DisponÃ­vel' : 'ðŸ”´ Locado'}
+                                    ${produto.disponivel ? '✅ Disponível' : '🔴 Locado'}
                                 </span>
                             </span>
                         </div>
                         ${produto.descricao ? `
                             <div class="detail-item">
-                                <strong>DescriÃ§Ã£o</strong>
+                                <strong>Configuração</strong>
                                 <span>${produto.descricao}</span>
                             </div>
                         ` : ''}
@@ -1110,7 +1246,7 @@
                     </div>
                     ${produto.disponivel ? `
                         <div class="actions">
-                            <button class="btn btn-danger" onclick="deletarProduto('${produto.id}')">ðŸ—‘ï¸ Deletar</button>
+                            <button class="btn btn-danger" onclick="deletarProduto('${produto.id}')">🗑️ Deletar</button>
                         </div>
                     ` : ''}
                 </div>
@@ -1128,7 +1264,7 @@
         function deletarProduto(produtoId) {
             if (!confirm('Tem certeza?')) return;
             deleteProdutoFirebase(produtoId);
-            showNotification('âœ“ Produto deletado!');
+            showNotification('✓ Produto deletado!');
             voltarEquipamentos();
         }
 
@@ -1169,15 +1305,15 @@
                 const equipLocado = locacoes.filter(l => l.clienteId === c.id && l.ativo);
                 const temLocacao = equipLocado.length > 0;
                 const status = temLocacao ? 'badge-occupied' : 'badge-available';
-                const statusText = temLocacao ? 'ðŸ”´ Com equipamento' : 'âœ… Sem equipamento';
+                const statusText = temLocacao ? '🔴 Com equipamento' : '✅ Sem equipamento';
                 
                 html += `
                     <div class="client-card" onclick="verDetalheCliente('${c.id}')">
                         <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
                         <h3>${c.nome}</h3>
-                        <div class="client-info">ðŸ“§ ${c.email}</div>
-                        <div class="client-info">ðŸ“± ${c.telefone}</div>
-                        <div class="client-info">ðŸ“ ${c.endereco}</div>
+                        <div class="client-info">📧 ${c.email}</div>
+                        <div class="client-info">📱 ${c.telefone}</div>
+                        <div class="client-info">📍 ${c.endereco}</div>
                         <div class="client-info" style="font-size: 11px; color: #a7a9a9; margin-top: 8px;">Desde: ${c.dataCriacao}</div>
                     </div>
                 `;
@@ -1204,9 +1340,9 @@
                     locacoesHtml += `
                         <div style="background: #f0f4f8; padding: 10px; border-radius: 8px; color: black;">
                             <strong>${produto ? produto.nome : 'Produto'}</strong><br>
-                            <small>De: ${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')} atÃ© ${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')}</small><br>
+                            <small>De: ${new Date(loc.dataLocacao).toLocaleDateString('pt-BR')} até ${new Date(loc.dataDevolucao).toLocaleDateString('pt-BR')}</small><br>
                             <small style="color: #32c3bb; font-weight: bold;">R$ ${loc.valorTotal.toFixed(2)}</small>
-                            <button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')" style="margin-top: 8px; width: 100%;">âœ“ Devolver</button>
+                            <button class="btn btn-success btn-small" onclick="abrirDevolverProduto('${loc.id}')" style="margin-top: 8px; width: 100%;">✓ Devolver</button>
                         </div>
                     `;
                 });
@@ -1214,11 +1350,11 @@
             }
 
             const html = `
-                <button class="btn btn-secondary back-btn" onclick="voltarClientes()">â† Voltar</button>
+                <button class="btn btn-secondary back-btn" onclick="voltarClientes()">← Voltar</button>
                 <div class="cliente-detalhes">
                     <h2>${cliente.nome}</h2>
                     <div class="detail-section">
-                        <h3>ðŸ‘¤ Dados Pessoais</h3>
+                        <h3>👤 Dados Pessoais</h3>
                         <div class="detail-item">
                             <strong>Email</strong>
                             <span>${cliente.email}</span>
@@ -1228,19 +1364,19 @@
                             <span>${cliente.telefone}</span>
                         </div>
                         <div class="detail-item">
-                            <strong>EndereÃ§o</strong>
+                            <strong>Endereço</strong>
                             <span>${cliente.endereco}</span>
                         </div>
                     </div>
 
                     <div class="detail-section">
-                        <h3>ðŸ“¦ LocaÃ§Ãµes Ativas</h3>
+                        <h3>📦 Locações Ativas</h3>
                         ${locacoesHtml}
                     </div>
 
                     <div class="actions">
-                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente('${cliente.id}')">âž• Locar Equipamento</button>
-                        <button class="btn btn-danger" onclick="deletarCliente('${cliente.id}')">ðŸ—‘ï¸ Deletar Cliente</button>
+                        <button class="btn btn-primary" onclick="abrirLocarProdutoCliente('${cliente.id}')">➕ Locar Equipamento</button>
+                        <button class="btn btn-danger" onclick="deletarCliente('${cliente.id}')">🗑️ Deletar Cliente</button>
                     </div>
                 </div>
             `;
@@ -1257,30 +1393,30 @@
         function deletarCliente(clienteId) {
             if (!confirm('Tem certeza?')) return;
             deleteClienteFirebase(clienteId);
-            showNotification('âœ“ Cliente deletado!');
+            showNotification('✓ Cliente deletado!');
             voltarClientes();
         }
 
-        // ========== LOCAÃ‡Ã•ES ==========
+        // ========== LOCAÇÕES ==========
         function abrirLocarProdutoCliente(clienteId) {
             const cliente = clientes.find(c => c.id === clienteId);
             if (!cliente) return;
 
             const produtosDisponiveis = produtos.filter(p => p.disponivel);
             if (produtosDisponiveis.length === 0) {
-                showNotification('Nenhum equipamento disponÃ­vel!', 'error');
+                showNotification('Nenhum equipamento disponível!', 'error');
                 return;
             }
 
             const html = `
-                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente('${cliente.id}')">â† Voltar</button>
+                <button class="btn btn-secondary back-btn" onclick="verDetalheCliente('${cliente.id}')">← Voltar</button>
                 <div style="margin-bottom: 20px;">
                     <h3>Selecione um Equipamento</h3>
                     <div class="equipamentos-grid" style="margin-top: 15px;">
                         ${produtosDisponiveis.map(p => `
                             <div class="product-card" onclick="abrirLocar('${p.id}', '${clienteId}')">
                                 <h3>${p.nome}</h3>
-                                <div class="product-serie">ðŸ“Œ ${p.serie}</div>
+                                <div class="product-serie">📌 ${p.serie}</div>
                                 <div class="product-valor">R$ ${p.valorDiario.toFixed(2)}/dia</div>
                             </div>
                         `).join('')}
@@ -1308,7 +1444,7 @@
                     <span>${produto.nome}</span>
                 </div>
                 <div class="detail-item">
-                    <strong>SÃ©rie</strong>
+                    <strong>Série</strong>
                     <span>${produto.serie}</span>
                 </div>
                 <div class="detail-item">
@@ -1360,7 +1496,7 @@
             const produto = produtos.find(p => p.id === produtoId);
 
             if (!produto) {
-                showNotification('âŒ Preencha todos os campos!', 'error');
+                showNotification('❌ Preencha todos os campos!', 'error');
                 return;
             }
 
@@ -1382,22 +1518,22 @@
                 temContrato: contratoFile ? true : false
             };
 
-            // Salvar locaÃ§Ã£o
+            // Salvar locação
             saveLocacao(locacao);
 
-            // Salvar contrato com delay para sincronizaÃ§Ã£o - APENAS se arquivo foi enviado
+            // Salvar contrato com delay para sincronização - APENAS se arquivo foi enviado
             if (contratoFile) {
                 setTimeout(() => {
                     salvarContratoFirebase(locacao.id, contratoFile);
                 }, 500);
             }
 
-            // Atualizar produto como nÃ£o disponÃ­vel
+            // Atualizar produto como não disponível
             produto.disponivel = false;
             produto.locacaoId = locacao.id;
             saveProduto(produto);
 
-            showNotification('âœ“ LocaÃ§Ã£o criada com sucesso!');
+            showNotification('✓ Locação criada com sucesso!');
             closeModal('modalLocarProduto');
             document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
             showView('clientes');
@@ -1424,16 +1560,16 @@
 
             document.getElementById('infoDevolver').innerHTML = `
                 <div class="detail-section">
-                    <h3>ðŸ“¦ Produto: ${produto.nome}</h3>
-                    <small>SÃ©rie: ${produto.serie}</small>
+                    <h3>📦 Produto: ${produto.nome}</h3>
+                    <small>Série: ${produto.serie}</small>
                 </div>
                 <div class="detail-section">
-                    <h3>ðŸ‘¤ Cliente: ${cliente.nome}</h3>
+                    <h3>👤 Cliente: ${cliente.nome}</h3>
                     <small>${cliente.email} | ${cliente.telefone}</small>
                 </div>
                 <div class="detail-section">
                     <strong>Locado em:</strong> ${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')}<br>
-                    <strong>DevoluÃ§Ã£o prevista:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
+                    <strong>Devolução prevista:</strong> ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}
                 </div>
             `;
 
@@ -1462,15 +1598,15 @@
             locacao.condicao = document.getElementById('condicao').value;
             locacao.valorFinal = locacao.valorTotal + multa;
 
-            // Salvar locaÃ§Ã£o finalizada
+            // Salvar locação finalizada
             saveLocacao(locacao);
 
-            // Atualizar produto como disponÃ­vel
+            // Atualizar produto como disponível
             produto.disponivel = true;
             produto.locacaoId = null;
             saveProduto(produto);
 
-            showNotification('âœ“ Produto devolvido!');
+            showNotification('✓ Produto devolvido!');
             closeModal('modalDevolverProduto');
             document.getElementById('contratoFile').value = ''; // Limpar input de arquivo
         });
@@ -1491,9 +1627,9 @@
             const ativas = locacoes.filter(l => l.ativo);
 
             if (ativas.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhuma locaÃ§Ã£o ativa</div>';
+                container.innerHTML = '<div class="empty-state">Nenhuma locação ativa</div>';
             } else {
-                let html = '<table><thead><tr><th>Equipamento</th><th>Cliente</th><th>DevoluÃ§Ã£o</th><th>Valor</th><th>Contrato</th><th>AÃ§Ã£o</th></tr></thead><tbody>';
+                let html = '<table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Devolução</th><th>Valor</th><th>Contrato</th><th>Ação</th></tr></thead><tbody>';
 
                 ativas.forEach(loc => {
                     const produto = produtos.find(p => p.id === loc.produtoId);
@@ -1502,8 +1638,8 @@
                     const badge = dias < 0 ? 'badge-occupied' : 'badge-available';
                     const temContrato = contratosMap && contratosMap[loc.id];
                     const botaoContrato = temContrato
-                        ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">ðŸ“¥ Download</button>`
-                        : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">âž• Adicionar</button>`;
+                        ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
+                        : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">➕ Adicionar</button>`;
 
                     html += `<tr>
                         <td><strong>${produto.nome}</strong></td>
@@ -1520,23 +1656,23 @@
             }
         }
 
-        // ========== HISTÃ“RICO ==========
+        // ========== HISTÓRICO ==========
         function renderHistorico() {
             const container = document.getElementById('historicoList');
             const devolvidas = locacoes.filter(l => !l.ativo);
 
             if (devolvidas.length === 0) {
-                container.innerHTML = '<div class="empty-state">Nenhuma devoluÃ§Ã£o registrada</div>';
+                container.innerHTML = '<div class="empty-state">Nenhuma devolução registrada</div>';
                 return;
             }
 
-            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>LocaÃ§Ã£o</th><th>DevoluÃ§Ã£o</th><th>Valor</th><th>CondiÃ§Ã£o</th><th>Contrato</th></tr></thead><tbody>';
+            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Locação</th><th>Devolução</th><th>Valor</th><th>Condição</th><th>Contrato</th></tr></thead><tbody>';
 
             devolvidas.forEach(loc => {
                 const produto = produtos.find(p => p.id === loc.produtoId);
                 const cliente = clientes.find(c => c.id === loc.clienteId);
                 const botaoContrato = contratosMap && contratosMap[loc.id] 
-                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">ðŸ“¥ Download</button>`
+                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
                     : '<span style="color: #a7a9a9;">Sem arquivo</span>';
 
                 html += `<tr>
@@ -1572,14 +1708,14 @@
                 return;
             }
 
-            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>LocaÃ§Ã£o</th><th>DevoluÃ§Ã£o</th><th>Valor</th><th>CondiÃ§Ã£o</th><th>Contrato</th></tr></thead><tbody>';
+            let html = '<div style="overflow-x: auto;"><table><thead><tr><th>Equipamento</th><th>Cliente</th><th>Locação</th><th>Devolução</th><th>Valor</th><th>Condição</th><th>Contrato</th></tr></thead><tbody>';
 
             filtradas.forEach(loc => {
                 const produto = produtos.find(p => p.id === loc.produtoId);
                 const cliente = clientes.find(c => c.id === loc.clienteId);
                 const botaoContrato = contratosMap && contratosMap[loc.id]
-                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">ðŸ“¥ Download</button>`
-                    : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">âž• Adicionar</button>`;
+                    ? `<button class="btn btn-info btn-small" onclick="downloadContrato('${loc.id}')">📥 Download</button>`
+                    : `<button class="btn btn-secondary btn-small" onclick="abrirAdicionarContrato('${loc.id}')">➕ Adicionar</button>`;
 
                 html += `<tr>
                     <td>${produto ? produto.nome : 'Desconhecido'}</td>
@@ -1601,7 +1737,7 @@
             let contrato = contratosMap[locacaoId];
             
             if (!contrato) {
-                // Se nÃ£o encontrar, buscar do Firebase
+                // Se não encontrar, buscar do Firebase
                 db.ref('contratos/' + locacaoId).once('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
@@ -1609,11 +1745,11 @@
                         contratosMap[locacaoId] = data;
                         executarDownload(contrato);
                     } else {
-                        showNotification('âŒ Contrato nÃ£o encontrado!', 'error');
+                        showNotification('❌ Contrato não encontrado!', 'error');
                     }
                 }).catch(err => {
                     console.error('Erro ao buscar contrato:', err.message);
-                    showNotification('âŒ Erro ao buscar contrato!', 'error');
+                    showNotification('❌ Erro ao buscar contrato!', 'error');
                 });
             } else {
                 executarDownload(contrato);
@@ -1622,14 +1758,21 @@
 
         function executarDownload(contrato) {
             try {
-                const link = document.createElement('a');
-                link.href = contrato.data;
-                link.download = contrato.nome;
-                link.click();
-                showNotification('âœ“ Download iniciado!');
+                // Usar Storage para gerar URL de download
+                const storageRef = storage.ref(contrato.caminhoStorage);
+                storageRef.getDownloadURL().then(url => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = contrato.nome;
+                    link.click();
+                    showNotification('✓ Download iniciado!');
+                }).catch(err => {
+                    console.error('Erro ao gerar URL:', err.message);
+                    showNotification('❌ Erro ao gerar URL de download!', 'error');
+                });
             } catch (err) {
                 console.error('Erro ao fazer download:', err.message);
-                showNotification('âŒ Erro ao fazer download!', 'error');
+                showNotification('❌ Erro ao fazer download!', 'error');
             }
         }
 
@@ -1645,15 +1788,15 @@
 
             document.getElementById('infoContratoModal').innerHTML = `
                 <div class="detail-section">
-                    <h3>ðŸ“¦ Produto: ${produto.nome}</h3>
-                    <small>SÃ©rie: ${produto.serie}</small>
+                    <h3>📦 Produto: ${produto.nome}</h3>
+                    <small>Série: ${produto.serie}</small>
                 </div>
                 <div class="detail-section">
-                    <h3>ðŸ‘¤ Cliente: ${cliente.nome}</h3>
+                    <h3>👤 Cliente: ${cliente.nome}</h3>
                     <small>${cliente.email} | ${cliente.telefone}</small>
                 </div>
                 <div class="detail-section">
-                    <strong>LocaÃ§Ã£o:</strong> ${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')} atÃ© ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}<br>
+                    <strong>Locação:</strong> ${new Date(locacao.dataLocacao).toLocaleDateString('pt-BR')} até ${new Date(locacao.dataDevolucao).toLocaleDateString('pt-BR')}<br>
                 </div>
             `;
 
@@ -1667,7 +1810,7 @@
             const contratoFile = document.getElementById('contratoFileModal').files[0];
 
             if (!contratoFile) {
-                showNotification('âŒ Selecione um arquivo!', 'error');
+                showNotification('❌ Selecione um arquivo!', 'error');
                 return;
             }
 
@@ -1681,10 +1824,10 @@
             else if (activeView === 'historico') renderHistorico();
         });
 
-        // ========== INICIALIZAÃ‡ÃƒO ==========
+        // ========== INICIALIZAÇÃO ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('ðŸš€ Iniciando Sistema de LocaÃ§Ã£o');
-            console.log('Firebase inicializado:', firebase.app() ? 'SIM' : 'NÃƒO');
+            console.log('🚀 Iniciando Sistema de Locação');
+            console.log('Firebase inicializado:', firebase.app() ? 'SIM' : 'NÃO');
             
             loadDadosFromFirebase();
             carregarContratos();
