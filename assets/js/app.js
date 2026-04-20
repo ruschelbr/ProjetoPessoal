@@ -84,19 +84,51 @@ function abrirPagina(pagina) {
     }
 }
 
+function skeletonCards(n, tipo) {
+    let html = '<div class="' + tipo + '-grid">';
+    for (let i = 0; i < n; i++) {
+        html += '<div class="' + (tipo === 'equipamentos' ? 'product' : 'client') + '-card skeleton-card">';
+        html += '<span class="skeleton" style="height:11px;width:50%;margin-bottom:14px;"></span>';
+        html += '<span class="skeleton" style="height:18px;width:78%;margin-bottom:12px;"></span>';
+        html += '<span class="skeleton" style="height:12px;width:55%;margin-bottom:8px;"></span>';
+        html += '<span class="skeleton" style="height:12px;width:40%;"></span>';
+        html += '</div>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function skeletonLinhas(n, colunas) {
+    let html = '';
+    for (let i = 0; i < n; i++) {
+        html += '<div style="display:flex;gap:16px;padding:14px 16px;border-bottom:1px solid rgba(94,82,64,0.12);">';
+        for (let c = 0; c < colunas; c++) {
+            const w = [55, 30, 25, 20, 20, 20][c] || 20;
+            html += '<span class="skeleton" style="height:14px;flex:' + w + ';border-radius:4px;"></span>';
+        }
+        html += '</div>';
+    }
+    return html;
+}
+
 function ativarPaginaAtual() {
     const pagina = document.body.dataset.page;
     if (!pagina) return;
+
     if (pagina === 'dashboard') {
-        atualizarPainel();
+        const cont = document.getElementById('locacoesAtivas');
+        if (cont) cont.innerHTML = skeletonLinhas(5, 6);
     } else if (pagina === 'equipamentos') {
         renderizarFiltrosCategorias();
         renderizarSubcategoriasFiltro();
-        renderizarEquipamentos();
+        const cont = document.getElementById('equipamentosList');
+        if (cont) cont.innerHTML = skeletonCards(6, 'equipamentos');
     } else if (pagina === 'clientes') {
-        renderizarClientes();
+        const cont = document.getElementById('clientesList');
+        if (cont) cont.innerHTML = skeletonCards(6, 'clientes');
     } else if (pagina === 'historico') {
-        renderizarHistorico();
+        const cont = document.getElementById('historicoList');
+        if (cont) cont.innerHTML = '<div style="overflow-x:auto;">' + skeletonLinhas(6, 7) + '</div>';
     }
 }
 
