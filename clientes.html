@@ -6,6 +6,7 @@
     <title>Sistema de Locacao de Equipamentos</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/paginas.css">
+    <script>(function(){if(sessionStorage.getItem('operadorAutenticado')==='true'){var s=document.createElement('style');s.textContent='#loginScreen{display:none!important}';document.head.appendChild(s);}})();</script>
 </head><body data-page="clientes">
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
@@ -72,6 +73,11 @@
                         <input type="checkbox" id="temPlacaVideo" name="temPlacaVideo">
                         <label for="temPlacaVideo" style="margin-bottom: 0;">Possui placa de video dedicada</label>
                     </div>
+                </div>
+
+                <div id="ramGroup" class="form-group" style="display: none;">
+                    <label for="ramProduto">RAM (GB) *</label>
+                    <input type="number" id="ramProduto" min="1" step="1" placeholder="Ex: 8">
                 </div>
 
                 <div class="form-group">

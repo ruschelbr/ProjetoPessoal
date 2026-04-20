@@ -84,21 +84,54 @@ function abrirPagina(pagina) {
     }
 }
 
+function skeletonCards(n, tipo) {
+    let html = '<div class="' + tipo + '-grid">';
+    for (let i = 0; i < n; i++) {
+        html += '<div class="' + (tipo === 'equipamentos' ? 'product' : 'client') + '-card skeleton-card">';
+        html += '<span class="skeleton" style="height:11px;width:50%;margin-bottom:14px;"></span>';
+        html += '<span class="skeleton" style="height:18px;width:78%;margin-bottom:12px;"></span>';
+        html += '<span class="skeleton" style="height:12px;width:55%;margin-bottom:8px;"></span>';
+        html += '<span class="skeleton" style="height:12px;width:40%;"></span>';
+        html += '</div>';
+    }
+    html += '</div>';
+    return html;
+}
+
+function skeletonLinhas(n, colunas) {
+    let html = '';
+    for (let i = 0; i < n; i++) {
+        html += '<div style="display:flex;gap:16px;padding:14px 16px;border-bottom:1px solid rgba(94,82,64,0.12);">';
+        for (let c = 0; c < colunas; c++) {
+            const w = [55, 30, 25, 20, 20, 20][c] || 20;
+            html += '<span class="skeleton" style="height:14px;flex:' + w + ';border-radius:4px;"></span>';
+        }
+        html += '</div>';
+    }
+    return html;
+}
+
 function ativarPaginaAtual() {
     const pagina = document.body.dataset.page;
     if (!pagina) return;
+
     if (pagina === 'dashboard') {
-        atualizarPainel();
+        const cont = document.getElementById('locacoesAtivas');
+        if (cont) cont.innerHTML = skeletonLinhas(5, 6);
     } else if (pagina === 'equipamentos') {
         renderizarFiltrosCategorias();
         renderizarSubcategoriasFiltro();
-        renderizarEquipamentos();
+        const cont = document.getElementById('equipamentosList');
+        if (cont) cont.innerHTML = skeletonCards(6, 'equipamentos');
     } else if (pagina === 'clientes') {
-        renderizarClientes();
+        const cont = document.getElementById('clientesList');
+        if (cont) cont.innerHTML = skeletonCards(6, 'clientes');
     } else if (pagina === 'historico') {
-        renderizarHistorico();
+        const cont = document.getElementById('historicoList');
+        if (cont) cont.innerHTML = '<div style="overflow-x:auto;">' + skeletonLinhas(6, 7) + '</div>';
     }
 }
+
 
 function abrirModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -148,10 +181,6 @@ function carregarDadosFirebase() {
         const paginaEquipamentos = document.getElementById('equipamentos');
         if (paginaEquipamentos && paginaEquipamentos.classList.contains('active')) {
             renderizarEquipamentos();
-        }
-        const paginaHistorico = document.getElementById('historico');
-        if (paginaHistorico && paginaHistorico.classList.contains('active')) {
-            renderizarHistorico();
         }
     });
 }
@@ -240,11 +269,14 @@ function atualizarListaSubcategorias() {
     const placaVideoGroup = document.getElementById('placaVideoGroup');
     selectSubcategoria.innerHTML = '<option value="">Selecione a subcategoria...</option>';
 
+    const ramGroup = document.getElementById('ramGroup');
     if (categoriaSelecionada === 'Notebooks') {
         placaVideoGroup.style.display = 'block';
+        if (ramGroup) ramGroup.style.display = 'block';
     } else {
         placaVideoGroup.style.display = 'none';
         document.getElementById('temPlacaVideo').checked = false;
+        if (ramGroup) { ramGroup.style.display = 'none'; document.getElementById('ramProduto').value = ''; }
     }
 
     if (categoriaSelecionada && CATEGORIAS[categoriaSelecionada]) {
@@ -539,6 +571,8 @@ function abrirModalProduto() {
     if (form) form.reset();
     const placaGroup = document.getElementById('placaVideoGroup');
     if (placaGroup) placaGroup.style.display = 'none';
+    const ramGroup = document.getElementById('ramGroup');
+    if (ramGroup) ramGroup.style.display = 'none';
     preencherListaCategorias();
     abrirModal('modalAddProduct');
 }
@@ -550,6 +584,7 @@ adicionarEvento('formProduct', 'submit', function(e) {
     const subcategoria = document.getElementById('subcategoriaProduto').value;
     const temPlacaVideo = document.getElementById('temPlacaVideo').checked;
 
+    const ramVal = document.getElementById('ramProduto') ? document.getElementById('ramProduto').value : '';
     const produto = {
         id: Date.now().toString(),
         nome: document.getElementById('nomeProduto').value,
@@ -558,6 +593,7 @@ adicionarEvento('formProduct', 'submit', function(e) {
         categoria: categoria,
         subcategoria: subcategoria,
         temPlacaVideo: categoria === 'Notebooks' ? temPlacaVideo : null,
+        ram: categoria === 'Notebooks' && ramVal ? parseInt(ramVal) : null,
         disponivel: true,
         locacaoId: null
     };
@@ -566,6 +602,13 @@ adicionarEvento('formProduct', 'submit', function(e) {
     document.getElementById('formProduct').reset();
     fecharModal('modalAddProduct');
 });
+
+function labelCategoria(p) {
+    let label = p.categoria || '';
+    if (p.subcategoria) label += ' / ' + p.subcategoria;
+    if (p.categoria === 'Notebooks' && p.ram) label += ' / RAM ' + p.ram + 'GB';
+    return label;
+}
 
 function renderizarEquipamentos() {
     const container = document.getElementById('equipamentosList');
@@ -594,7 +637,7 @@ function renderizarEquipamentos() {
         html += `
             <div class="product-card" onclick="verDetalheProduto('${p.id}')">
                 <span class="badge ${status}" style="position: absolute; top: 10px; right: 10px;">${statusText}</span>
-                ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
+                ${p.categoria ? `<div class="product-categoria">${labelCategoria(p)}</div>` : ''}
                 ${specs}
                 <h3>${p.nome}</h3>
                 <div class="product-serie">${p.serie}</div>
@@ -632,7 +675,7 @@ function renderizarEquipamentosLocar() {
         }
         html += `
             <div class="product-card" onclick="abrirLocar('${p.id}', document.getElementById('clienteIdParaLocar').value)" style="cursor: pointer;">
-                ${p.categoria ? `<div class="product-categoria">${p.categoria}${p.subcategoria ? ' / ' + p.subcategoria : ''}</div>` : ''}
+                ${p.categoria ? `<div class="product-categoria">${labelCategoria(p)}</div>` : ''}
                 ${specs}
                 <h3>${p.nome}</h3>
                 <div class="product-serie">${p.serie}</div>
@@ -664,6 +707,10 @@ function verDetalheProduto(produtoId) {
     if (produto.categoria === 'Notebooks') {
         specsDetail = `
             <div class="detail-item">
+                <strong>RAM</strong>
+                <span>${produto.ram ? produto.ram + ' GB' : 'Não informado'}</span>
+            </div>
+            <div class="detail-item">
                 <strong>Placa de Video Dedicada</strong>
                 <span>${produto.temPlacaVideo ? 'Sim' : 'Nao (integrada)'}</span>
             </div>
@@ -674,7 +721,7 @@ function verDetalheProduto(produtoId) {
         <button class="btn btn-secondary back-btn" onclick="voltarEquipamentos()">Voltar</button>
         <div class="produto-detalhes">
             <h2>${produto.nome}</h2>
-            ${produto.categoria ? `<div style="color: var(--primary); font-weight: 600; margin-bottom: 16px;">${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</div>` : ''}
+            ${produto.categoria ? `<div style="color: var(--primary); font-weight: 600; margin-bottom: 16px;">${labelCategoria(produto)}</div>` : ''}
             <div class="detail-section">
                 <h3>Informacoes</h3>
                 <div class="detail-item">
@@ -886,12 +933,16 @@ function abrirLocar(produtoId, clienteId) {
         ${produto.categoria ? `
             <div class="detail-item">
                 <strong>Categoria</strong>
-                <span>${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</span>
+                <span>${labelCategoria(produto)}</span>
             </div>
         ` : ''}
     `;
     if (produto.categoria === 'Notebooks') {
         produtoInfo += `
+            <div class="detail-item">
+                <strong>RAM</strong>
+                <span>${produto.ram ? produto.ram + ' GB' : 'Não informado'}</span>
+            </div>
             <div class="detail-item">
                 <strong>Placa de Video Dedicada</strong>
                 <span>${produto.temPlacaVideo ? 'Sim' : 'Nao (integrada)'}</span>
@@ -1130,6 +1181,10 @@ function abrirDetalhesLocacao(locacaoId) {
     if (produto.categoria === 'Notebooks') {
         produtoSpecs = `
             <div class="detail-item">
+                <strong>RAM</strong>
+                <span>${produto.ram ? produto.ram + ' GB' : 'Não informado'}</span>
+            </div>
+            <div class="detail-item">
                 <strong>Placa de Video Dedicada</strong>
                 <span>${produto.temPlacaVideo ? 'Sim' : 'Nao (integrada)'}</span>
             </div>
@@ -1148,7 +1203,7 @@ function abrirDetalhesLocacao(locacaoId) {
                 ${produto.categoria ? `
                     <div class="detail-item">
                         <strong>Categoria</strong>
-                        <span>${produto.categoria}${produto.subcategoria ? ' / ' + produto.subcategoria : ''}</span>
+                        <span>${labelCategoria(produto)}</span>
                     </div>
                 ` : ''}
                 <div class="detail-item">
