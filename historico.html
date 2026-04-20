@@ -6,7 +6,7 @@
     <title>Sistema de Locacao de Equipamentos</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/paginas.css">
-</head><body data-page="dashboard">
+</head><body data-page="historico">
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
             <div class="login-content">
@@ -38,31 +38,13 @@
             <button class="btn btn-danger" onclick="sairSistema()">Sair</button>
         </div>
     </header>    <div class="container">
-        <div id="dashboard" class="view active">
-            <h2>Dashboard principal</h2>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total de clientes</h3>
-                    <div class="number" id="totalClientes">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Equipamentos ativos</h3>
-                    <div class="number" id="equipAtivos">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Equipamentos livres</h3>
-                    <div class="number" id="equipLivres">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Faturamento ativo</h3>
-                    <div class="number" id="valorTotal">R$ 0,00</div>
-                </div>
+        <div id="historico" class="view active">
+            <h2>Historico de devolucoes</h2>
+            <div class="inline-tools">
+                <input type="text" id="buscaHistorico" placeholder="Buscar por cliente, equipamento...">
+                <button class="btn btn-secondary" onclick="filtrarHistorico()">Buscar</button>
             </div>
-            <div class="table-container">
-                <h3>Locacoes ativas</h3>
-                <div id="locacoesAtivas"></div>
-            </div>
-            <div id="locacaoDetalhes"></div>
+            <div id="historicoList"></div>
         </div>
     </div>    <div id="modalAddProduct" class="modal">
         <div class="modal-content">

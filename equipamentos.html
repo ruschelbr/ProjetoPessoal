@@ -6,7 +6,7 @@
     <title>Sistema de Locacao de Equipamentos</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/paginas.css">
-</head><body data-page="dashboard">
+</head><body data-page="equipamentos">
     <div id="loginScreen" class="login-screen">
         <div class="login-card">
             <div class="login-content">
@@ -38,31 +38,25 @@
             <button class="btn btn-danger" onclick="sairSistema()">Sair</button>
         </div>
     </header>    <div class="container">
-        <div id="dashboard" class="view active">
-            <h2>Dashboard principal</h2>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total de clientes</h3>
-                    <div class="number" id="totalClientes">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Equipamentos ativos</h3>
-                    <div class="number" id="equipAtivos">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Equipamentos livres</h3>
-                    <div class="number" id="equipLivres">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Faturamento ativo</h3>
-                    <div class="number" id="valorTotal">R$ 0,00</div>
-                </div>
+        <div id="equipamentos" class="view active">
+            <div class="page-header">
+                <h2>Equipamentos</h2>
+                <button class="btn btn-primary" onclick="abrirModalProduto()">Novo produto</button>
             </div>
-            <div class="table-container">
-                <h3>Locacoes ativas</h3>
-                <div id="locacoesAtivas"></div>
+            <div class="filter-section">
+                <h3>Filtrar por categoria</h3>
+                <div id="categoriasFilter"></div>
             </div>
-            <div id="locacaoDetalhes"></div>
+            <div class="filter-section" id="subcategoriasFilterSection" style="display: none;">
+                <h3>Filtrar por subcategoria</h3>
+                <div id="subcategoriasFilter"></div>
+            </div>
+            <div class="filter-section" id="placaVideoFilterSection" style="display: none;">
+                <h3>Filtrar por placa de video</h3>
+                <div id="placaVideoFilter" class="placa-video-filter"></div>
+            </div>
+            <div id="equipamentosList"></div>
+            <div id="produtoDetalhes"></div>
         </div>
     </div>    <div id="modalAddProduct" class="modal">
         <div class="modal-content">
