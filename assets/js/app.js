@@ -152,41 +152,72 @@ function mostrarAviso(msg, tipo) {
 }
 
 function carregarDadosFirebase() {
-    db.ref('produtos').on('value', (snapshot) => {
-        const data = snapshot.val();
-        produtos = data ? Object.values(data) : [];
-        const paginaEquipamentos = document.getElementById('equipamentos');
-        if (paginaEquipamentos && paginaEquipamentos.classList.contains('active')) {
-            renderizarEquipamentos();
-        }
-    });
+    const pagina = document.body.dataset.page;
 
-    db.ref('clientes').on('value', (snapshot) => {
-        const data = snapshot.val();
-        clientes = data ? Object.values(data) : [];
-        const paginaClientes = document.getElementById('clientes');
-        if (paginaClientes && paginaClientes.classList.contains('active')) {
-            renderizarClientes();
-        }
-    });
+    // Contratos: sempre once() — arquivo nao muda em tempo real
+    carregarArquivosContratos();
 
-    db.ref('locacoes').on('value', (snapshot) => {
-        const data = snapshot.val();
-        locacoes = data ? Object.values(data) : [];
-        atualizarPainel();
-        const paginaClientes = document.getElementById('clientes');
-        if (paginaClientes && paginaClientes.classList.contains('active')) {
-            renderizarClientes();
-        }
-        const paginaEquipamentos = document.getElementById('equipamentos');
-        if (paginaEquipamentos && paginaEquipamentos.classList.contains('active')) {
+    if (pagina === 'dashboard') {
+        // Dashboard: locacoes em tempo real (locacoes ativas mudam), resto once()
+        db.ref('produtos').once('value', (snapshot) => {
+            produtos = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('clientes').once('value', (snapshot) => {
+            clientes = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('locacoes').on('value', (snapshot) => {
+            locacoes = snapshot.val() ? Object.values(snapshot.val()) : [];
+            atualizarPainel();
+        });
+
+    } else if (pagina === 'equipamentos') {
+        // Equipamentos: produtos em tempo real (disponibilidade muda), locacoes once()
+        db.ref('locacoes').once('value', (snapshot) => {
+            locacoes = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('produtos').on('value', (snapshot) => {
+            produtos = snapshot.val() ? Object.values(snapshot.val()) : [];
+            renderizarFiltrosCategorias();
+            renderizarSubcategoriasFiltro();
             renderizarEquipamentos();
-        }
-        const paginaHistorico = document.getElementById('historico');
-        if (paginaHistorico && paginaHistorico.classList.contains('active')) {
-            renderizarHistorico();
-        }
-    });
+        });
+
+    } else if (pagina === 'clientes') {
+        // Clientes: clientes e locacoes em tempo real (locacoes ativas aparecem no card)
+        db.ref('produtos').once('value', (snapshot) => {
+            produtos = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('clientes').on('value', (snapshot) => {
+            clientes = snapshot.val() ? Object.values(snapshot.val()) : [];
+            const paginaClientes = document.getElementById('clientes');
+            if (paginaClientes && paginaClientes.classList.contains('active')) {
+                renderizarClientes();
+            }
+        });
+        db.ref('locacoes').on('value', (snapshot) => {
+            locacoes = snapshot.val() ? Object.values(snapshot.val()) : [];
+            const paginaClientes = document.getElementById('clientes');
+            if (paginaClientes && paginaClientes.classList.contains('active')) {
+                renderizarClientes();
+            }
+        });
+
+    } else if (pagina === 'historico') {
+        // Historico: tudo once() — historico e dados de referencia nao mudam em tempo real
+        db.ref('produtos').once('value', (snapshot) => {
+            produtos = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('clientes').once('value', (snapshot) => {
+            clientes = snapshot.val() ? Object.values(snapshot.val()) : [];
+        });
+        db.ref('locacoes').once('value', (snapshot) => {
+            locacoes = snapshot.val() ? Object.values(snapshot.val()) : [];
+            const paginaHistorico = document.getElementById('historico');
+            if (paginaHistorico && paginaHistorico.classList.contains('active')) {
+                renderizarHistorico();
+            }
+        });
+    }
 }
 
 function salvarProduto(produto) {
@@ -261,18 +292,11 @@ function salvarContratoFirebase(locacaoId, arquivo, aoFinalizar) {
 }
 
 function carregarArquivosContratos() {
-    db.ref('contratos').on('value', (snapshot) => {
-        const data = snapshot.val();
-        contratosMap = data || {};
-        // Re-renderiza a view atual para refletir contratos atualizados
-        const pagina = document.body.dataset.page;
-        if (pagina === 'dashboard') atualizarPainel();
-        else if (pagina === 'historico') {
-            const paginaHistorico = document.getElementById('historico');
-            if (paginaHistorico && paginaHistorico.classList.contains('active')) {
-                renderizarHistorico();
-            }
-        }
+    db.ref('contratos').once('value', (snapshot) => {
+        contratosMap = snapshot.val() || {};
+    }).catch(err => {
+        console.error('Erro ao carregar contratos:', err.message);
+        contratosMap = {};
     });
 }
 
