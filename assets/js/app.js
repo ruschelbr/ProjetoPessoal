@@ -182,6 +182,10 @@ function carregarDadosFirebase() {
         if (paginaEquipamentos && paginaEquipamentos.classList.contains('active')) {
             renderizarEquipamentos();
         }
+        const paginaHistorico = document.getElementById('historico');
+        if (paginaHistorico && paginaHistorico.classList.contains('active')) {
+            renderizarHistorico();
+        }
     });
 }
 
@@ -230,7 +234,7 @@ function salvarLocacao(locacao) {
     });
 }
 
-function salvarContratoFirebase(locacaoId, arquivo) {
+function salvarContratoFirebase(locacaoId, arquivo, aoFinalizar) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const contratoData = {
@@ -242,24 +246,33 @@ function salvarContratoFirebase(locacaoId, arquivo) {
         db.ref('contratos/' + locacaoId).set(contratoData).then(() => {
             mostrarAviso('Contrato anexado com sucesso!');
             contratosMap[locacaoId] = contratoData;
+            if (typeof aoFinalizar === 'function') aoFinalizar();
         }).catch(err => {
             console.error('Erro ao salvar contrato:', err.message);
             mostrarAviso('Erro ao salvar contrato: ' + err.message, 'error');
+            if (typeof aoFinalizar === 'function') aoFinalizar();
         });
     };
     reader.onerror = function() {
         mostrarAviso('Erro ao ler arquivo!', 'error');
+        if (typeof aoFinalizar === 'function') aoFinalizar();
     };
     reader.readAsDataURL(arquivo);
 }
 
 function carregarArquivosContratos() {
-    db.ref('contratos').once('value', (snapshot) => {
+    db.ref('contratos').on('value', (snapshot) => {
         const data = snapshot.val();
         contratosMap = data || {};
-    }).catch(err => {
-        console.error('Erro ao carregar contratos:', err.message);
-        contratosMap = {};
+        // Re-renderiza a view atual para refletir contratos atualizados
+        const pagina = document.body.dataset.page;
+        if (pagina === 'dashboard') atualizarPainel();
+        else if (pagina === 'historico') {
+            const paginaHistorico = document.getElementById('historico');
+            if (paginaHistorico && paginaHistorico.classList.contains('active')) {
+                renderizarHistorico();
+            }
+        }
     });
 }
 
@@ -563,7 +576,15 @@ function aplicarEstadoLogin() {
     }
 
     if (mainHeader) mainHeader.style.display = 'none';
-    if (loginScreen) loginScreen.style.display = 'flex';
+    if (loginScreen) {
+        // Remove qualquer <style> injetado no head que possa ter !important bloqueando
+        document.querySelectorAll('head style').forEach(s => {
+            if (s.textContent.includes('#loginScreen') && s.textContent.includes('display:none')) {
+                s.remove();
+            }
+        });
+        loginScreen.style.setProperty('display', 'flex', 'important');
+    }
 }
 
 function abrirModalProduto() {
@@ -1027,20 +1048,22 @@ adicionarEvento('formLocar', 'submit', function(e) {
 
     salvarLocacao(locacao);
 
-    if (contratoFile) {
-        setTimeout(() => {
-            salvarContratoFirebase(locacao.id, contratoFile);
-        }, 500);
-    }
-
     produto.disponivel = false;
     produto.locacaoId = locacao.id;
     salvarProduto(produto);
 
-    mostrarAviso('Locacao criada com sucesso!');
     fecharModal('modalLocarProduto');
     document.getElementById('contratoFile').value = '';
-    abrirPagina('clientes');
+
+    if (contratoFile) {
+        mostrarAviso('Salvando contrato, aguarde...');
+        salvarContratoFirebase(locacao.id, contratoFile, function() {
+            abrirPagina('clientes');
+        });
+    } else {
+        mostrarAviso('Locacao criada com sucesso!');
+        abrirPagina('clientes');
+    }
 });
 
 function abrirDevolverProduto(locacaoId) {
